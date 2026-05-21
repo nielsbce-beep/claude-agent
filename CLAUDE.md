@@ -8,7 +8,7 @@ GitHub: https://github.com/nielsbce-beep/claude-agent
 
 ## Git Workflow
 
-After every meaningful change, commit with a clean message and push:
+Commit and push to GitHub regularly throughout all work — after every meaningful change, completed feature, bug fix, or logical stopping point. Never accumulate large batches of uncommitted changes. This ensures work is never lost and any state can be restored.
 
 ```bash
 git add <files>
@@ -16,4 +16,9 @@ git commit -m "Short imperative summary"
 git push
 ```
 
-Always push after committing so GitHub stays in sync as a save point.
+Commit message rules:
+- Use the imperative mood ("Add X", "Fix Y", "Remove Z")
+- Keep the first line under 72 characters
+- Be specific — describe what changed and why, not just "update files"
+
+Always push immediately after committing. GitHub is the source of truth and save point for this project.
