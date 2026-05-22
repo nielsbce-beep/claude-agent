@@ -1,0 +1,55 @@
+{
+  "last_updated": "2026-05-22",
+  "doel": {
+    "bedrag": 25000,
+    "deadline": "2029-12-31"
+  },
+  "inleg": {
+    "bnd_maand": 125,
+    "goud_maand": 75,
+    "aandelen_week": 15,
+    "bitcoin_week": 10
+  },
+  "holdings": {
+    "bnd": {
+      "naam": "Brand New Day (zeer offensief)",
+      "waarde": 2815.46,
+      "posities": [
+        {"naam": "BND Wereld Indexfonds Hedged",               "aantal": 31.60, "koers": 40.46, "waarde": 1278.42, "weging": 45.41},
+        {"naam": "BND Wereld Indexfonds Unhedged",             "aantal": 36.31, "koers": 23.96, "waarde": 870.19,  "weging": 30.91},
+        {"naam": "BND Small Cap Wereld Carbon Screened",       "aantal": 15.22, "koers": 19.17, "waarde": 291.75,  "weging": 10.36},
+        {"naam": "BND Emerging Markets Indexfonds",            "aantal": 22.79, "koers": 16.46, "waarde": 375.10,  "weging": 13.32}
+      ]
+    },
+    "goud": {
+      "naam": "Goud",
+      "waarde": 348.09,
+      "aankoopwaarde": 369.77,
+      "rendement_pct": -5.86
+    },
+    "aandelen": {
+      "naam": "Losse aandelen",
+      "posities": [
+        {"ticker": "NVDA",  "naam": "Nvidia",                "waarde": 66.68,  "rendement_pct": 18.69,  "weging": 12.87},
+        {"ticker": "DFNG",  "naam": "VanEck Defense",        "waarde": 53.05,  "rendement_pct": -4.98,  "weging": 10.24},
+        {"ticker": "BLK",   "naam": "BlackRock",             "waarde": 48.14,  "rendement_pct": 3.62,   "weging": 9.29},
+        {"ticker": "MSFT",  "naam": "Microsoft",             "waarde": 45.40,  "rendement_pct": 3.21,   "weging": 8.76},
+        {"ticker": "AAPL",  "naam": "Apple",                 "waarde": 41.77,  "rendement_pct": 19.65,  "weging": 8.06},
+        {"ticker": "BYDDY", "naam": "BYD",                   "waarde": 39.93,  "rendement_pct": -8.10,  "weging": 7.71},
+        {"ticker": "ASML",  "naam": "ASML",                  "waarde": 39.81,  "rendement_pct": 23.17,  "weging": 7.68},
+        {"ticker": "NFLX",  "naam": "Netflix",               "waarde": 38.16,  "rendement_pct": -0.68,  "weging": 7.37},
+        {"ticker": "JPM",   "naam": "JPMorgan Chase",        "waarde": 36.61,  "rendement_pct": 1.75,   "weging": 7.07},
+        {"ticker": "GOOGL", "naam": "Alphabet",              "waarde": 36.45,  "rendement_pct": 25.56,  "weging": 7.04},
+        {"ticker": "AMZN",  "naam": "Amazon",                "waarde": 36.07,  "rendement_pct": 22.65,  "weging": 6.96},
+        {"ticker": "META",  "naam": "Meta Platforms",        "waarde": 35.97,  "rendement_pct": -1.40,  "weging": 6.94}
+      ]
+    },
+    "bitcoin": {
+      "naam": "Bitcoin",
+      "waarde": 223,
+      "aankoopwaarde": 223,
+      "rendement_pct": 0
+    }
+  },
+  "updates": []
+}
