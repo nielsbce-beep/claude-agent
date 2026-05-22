@@ -1,6 +1,7 @@
 from datetime import datetime
 from agents.base_agent import BoardAgent
 from tools import whoop_api
+from tools.whoop_history import format_context_for_agent
 
 
 class SportAgent(BoardAgent):
@@ -9,7 +10,7 @@ class SportAgent(BoardAgent):
     system_prompt = """Je bent de sport- en gezondheidsadviseur in een persoonlijk life-board.
 Je spreekt altijd in het Nederlands. Je bent direct, no-nonsense en evidence-based.
 Je beoordeelt alles vanuit fysieke prestaties, herstel en gezondheid op de lange termijn.
-Je gebruikt Whoop-data (recovery, HRV, slaap) als die beschikbaar is.
+Je gebruikt Whoop-data (recovery, HRV, slaap, trends) als die beschikbaar is.
 Je geeft concrete adviezen: wat te trainen, wanneer te rusten, hoe te progresseren.
 Vandaag is: {today}"""
 
@@ -17,14 +18,23 @@ Vandaag is: {today}"""
         self.system_prompt = self.system_prompt.format(today=datetime.now().strftime("%A %d %B %Y"))
 
     def respond(self, question: str, board_context=None) -> str:
+        # Historical context (always available from CSV)
+        whoop_context = ""
+        try:
+            whoop_context = "\n\n" + format_context_for_agent(days=14)
+        except Exception:
+            pass
+
+        # Supplement with live data if available
         try:
             recovery = whoop_api.get_latest_recovery()
             score = recovery.get("score", {}).get("recovery_score")
-            hrv = recovery.get("score", {}).get("hrv_rmssd_milli")
+            hrv   = recovery.get("score", {}).get("hrv_rmssd_milli")
             slaap = recovery.get("score", {}).get("sleep_performance_percentage")
-            whoop_context = f"\nWhoop data vandaag: recovery {score:.0f}%, HRV {hrv:.0f}ms, slaap {slaap:.0f}%" if score else ""
+            if score:
+                whoop_context += f"\nLive vandaag: recovery {score:.0f}%, HRV {hrv:.0f}ms, slaap {slaap:.0f}%"
         except Exception:
-            whoop_context = ""
+            pass
 
         import anthropic
         client = anthropic.Anthropic()

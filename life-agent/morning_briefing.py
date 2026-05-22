@@ -16,6 +16,10 @@ sys.stdout.reconfigure(encoding="utf-8")
 from tools.calendar_tools import get_events
 from tools.goals_store import get_active
 from tools.whoop_api import get_latest_recovery, get_latest_sleep
+from tools.whoop_history import (
+    get_today_from_csv, get_recovery_trend, get_sleep_trend,
+    get_training_summary, get_overtraining_signal,
+)
 
 client = anthropic.Anthropic()
 MODEL = "claude-sonnet-4-6"
@@ -71,22 +75,61 @@ def _today_commitment() -> dict | None:
 # ── Data fetchers ──────────────────────────────────────────────────────────────
 
 def _fetch_whoop() -> dict:
+    # Try live API first; fall back to today's CSV row if cycle is still open
+    data = {}
     try:
         recovery = get_latest_recovery()
-        sleep = get_latest_sleep()
-        score = recovery.get("score", {})
+        sleep    = get_latest_sleep()
+        score    = recovery.get("score", {})
         sleep_score = sleep.get("score", {})
-        return {
-            "recovery_pct": score.get("recovery_score", None),
-            "hrv_ms": round(score.get("hrv_rmssd_milli", 0)),
-            "rhr": round(score.get("resting_heart_rate", 0)),
-            "sleep_hours": round(
-                sleep.get("score", {}).get("total_in_bed_time_milli", 0) / 3_600_000, 1
-            ),
-            "sleep_quality": round(sleep_score.get("sleep_performance_percentage", 0)),
-        }
+        if score.get("recovery_score"):
+            data = {
+                "recovery_pct":  round(score["recovery_score"]),
+                "hrv_ms":        round(score.get("hrv_rmssd_milli", 0)),
+                "rhr":           round(score.get("resting_heart_rate", 0)),
+                "sleep_hours":   round(
+                    sleep.get("score", {}).get("total_in_bed_time_milli", 0) / 3_600_000, 1
+                ),
+                "sleep_quality": round(sleep_score.get("sleep_performance_percentage", 0)),
+                "source":        "live",
+            }
     except Exception:
-        return {}
+        pass
+
+    if not data.get("recovery_pct"):
+        # Fall back to CSV
+        today = get_today_from_csv()
+        if today and today.get("recovery"):
+            data = {
+                "recovery_pct":  round(today["recovery"]),
+                "hrv_ms":        round(today["hrv"] or 0),
+                "rhr":           round(today["rhr"] or 0),
+                "sleep_hours":   round((today["sleep_min"] or 0) / 60, 1),
+                "sleep_quality": round(today["sleep_perf"] or 0),
+                "source":        "csv",
+            }
+
+    # Always attach 14-day trend from CSV
+    trend = get_recovery_trend(14)
+    if trend:
+        data["trend_avg"]   = trend.get("avg")
+        data["trend_arrow"] = trend.get("trend")
+        data["best_day"]    = trend.get("best_day")
+        data["worst_day"]   = trend.get("worst_day")
+        data["hrv_avg"]     = trend.get("hrv_avg")
+
+    sleep_t = get_sleep_trend(14)
+    if sleep_t:
+        data["sleep_avg_hours"] = sleep_t.get("avg_hours")
+        data["deep_avg_min"]    = sleep_t.get("avg_deep_min")
+
+    training = get_training_summary(14)
+    if training:
+        data["training_per_week"] = training.get("per_week")
+        data["top_activity"]      = training.get("top_activity")
+
+    data["overtraining"] = get_overtraining_signal()
+    return data
 
 
 def _fetch_calendar() -> list[dict]:
@@ -114,12 +157,41 @@ def _section_whoop(w: dict) -> list[str]:
         lines.append("  Geen Whoop data beschikbaar.")
         return lines
 
-    pct = w["recovery_pct"]
-    lines.append(f"  Score    {pct}%  {_bar(pct, 18)}")
-    lines.append(f"  HRV      {w['hrv_ms']} ms")
-    lines.append(f"  Rusthf   {w['rhr']} bpm")
-    lines.append(f"  Slaap    {w['sleep_hours']}u  (kwaliteit {w['sleep_quality']}%)")
+    pct    = w["recovery_pct"]
+    source = " (csv)" if w.get("source") == "csv" else ""
+    lines.append(f"  Score    {pct}%  {_bar(pct, 18)}{source}")
+    if w.get("hrv_ms"):
+        lines.append(f"  HRV      {w['hrv_ms']} ms")
+    if w.get("rhr"):
+        lines.append(f"  Rusthf   {w['rhr']} bpm")
+    if w.get("sleep_hours"):
+        lines.append(f"  Slaap    {w['sleep_hours']}u  (kwaliteit {w.get('sleep_quality', '?')}%)")
     lines.append(f"  Advies   {_recovery_label(pct)}")
+
+    # 14-day trend
+    if w.get("trend_avg"):
+        lines.append(
+            f"  14-dag   gem. {w['trend_avg']}%  HRV {w.get('hrv_avg')}ms  "
+            f"trend {w.get('trend_arrow', '?')}"
+        )
+    if w.get("best_day"):
+        lines.append(
+            f"  Patroon  beste dag: {w['best_day']}  |  "
+            f"slechtste: {w.get('worst_day', '?')}"
+        )
+    if w.get("sleep_avg_hours"):
+        lines.append(
+            f"  Slaap14  gem. {w['sleep_avg_hours']}u  "
+            f"diepe slaap {w.get('deep_avg_min', '?')} min/nacht"
+        )
+    if w.get("training_per_week"):
+        lines.append(
+            f"  Training {w['training_per_week']}x/week  "
+            f"meest: {w.get('top_activity', '?')}"
+        )
+    if w.get("overtraining"):
+        lines.append(f"  {w['overtraining']}")
+
     return lines
 
 
