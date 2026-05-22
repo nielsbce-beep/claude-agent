@@ -1,7 +1,34 @@
 import anthropic
+from datetime import date
 
 client = anthropic.Anthropic()
 MODEL = "claude-sonnet-4-6"
+
+
+def _build_goals_context() -> str:
+    try:
+        from tools.goals_store import get_active
+        goals = get_active()
+        if not goals:
+            return ""
+        today = date.today()
+        lines = ["Actieve doelen van de gebruiker:"]
+        for g in goals:
+            done  = sum(1 for m in g["milestones"] if m["done"])
+            total = len(g["milestones"])
+            try:
+                days_left = (date.fromisoformat(g["deadline"]) - today).days
+                deadline_str = f"{g['deadline']} ({days_left}d)"
+            except Exception:
+                deadline_str = g.get("deadline", "?")
+            last = g["check_ins"][-1]["date"][:10] if g["check_ins"] else "nooit"
+            lines.append(
+                f"  [{g['category']}] {g['title']} — {g['progress']}% — "
+                f"{done}/{total} mijlpalen — deadline {deadline_str} — check-in {last}"
+            )
+        return "\n".join(lines)
+    except Exception:
+        return ""
 
 
 class BoardAgent:
@@ -10,24 +37,21 @@ class BoardAgent:
     system_prompt: str
 
     def respond(self, question: str, board_context: list[tuple[str, str]] = None) -> str:
-        messages = []
+        goals_ctx = _build_goals_context()
+        system = self.system_prompt
+        if goals_ctx:
+            system += f"\n\n{goals_ctx}"
 
         if board_context:
             prev = "\n".join(f"[{name}]: {resp}" for name, resp in board_context)
-            messages.append({
-                "role": "user",
-                "content": f"De vraag: {question}\n\nWat andere board-leden al zeiden:\n{prev}\n\nGeef jouw perspectief. Wees kort (max 4 zinnen).",
-            })
+            user_msg = f"De vraag: {question}\n\nWat andere board-leden al zeiden:\n{prev}\n\nGeef jouw perspectief. Wees kort (max 4 zinnen)."
         else:
-            messages.append({
-                "role": "user",
-                "content": f"{question}\n\nGeef jouw perspectief. Wees kort (max 4 zinnen).",
-            })
+            user_msg = f"{question}\n\nGeef jouw perspectief. Wees kort (max 4 zinnen)."
 
         response = client.messages.create(
             model=MODEL,
             max_tokens=512,
-            system=self.system_prompt,
-            messages=messages,
+            system=system,
+            messages=[{"role": "user", "content": user_msg}],
         )
         return response.content[0].text

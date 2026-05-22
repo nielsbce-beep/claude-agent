@@ -20,6 +20,7 @@ from tools.whoop_history import (
     get_today_from_csv, get_recovery_trend, get_sleep_trend,
     get_training_summary, get_overtraining_signal,
 )
+from journal_agent import context_voor_agents as _journal_context, _recent_entries
 
 client = anthropic.Anthropic()
 MODEL = "claude-sonnet-4-6"
@@ -269,7 +270,7 @@ def _section_commitment() -> list[str]:
     return lines
 
 
-def _section_focus(whoop: dict, events: list[dict], goals: list[dict], commitment: dict | None) -> list[str]:
+def _section_focus(whoop: dict, events: list[dict], goals: list[dict], commitment: dict | None, journal_ctx: str = "") -> list[str]:
     """Ask Claude for 3 concrete focus points based on all data."""
     today = date.today()
 
@@ -306,6 +307,9 @@ def _section_focus(whoop: dict, events: list[dict], goals: list[dict], commitmen
         ctx_parts.append(f"Gisteren NIET nagekomen: \"{commitment['commitment']}\"")
     elif commitment and commitment.get("achieved") is None:
         ctx_parts.append(f"Open commitment van gisteren: \"{commitment['commitment']}\"")
+
+    if journal_ctx:
+        ctx_parts.append(journal_ctx)
 
     context = "\n".join(ctx_parts) if ctx_parts else "Geen data beschikbaar."
 
@@ -351,6 +355,7 @@ def run():
     events   = _fetch_calendar()
     goals    = _fetch_goals()
     commit   = _yesterday_commitment()
+    journal  = _journal_context(days=3)
 
     # Print sections
     sections = [
@@ -358,7 +363,7 @@ def run():
         _section_calendar(events),
         _section_goals(goals),
         _section_commitment(),
-        _section_focus(whoop, events, goals, commit),
+        _section_focus(whoop, events, goals, commit, journal),
     ]
 
     for section in sections:

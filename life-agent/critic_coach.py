@@ -8,7 +8,8 @@ load_dotenv()
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-from tools.goals_store import get_active
+from tools.goals_store import get_active, format_goals_summary
+from journal_agent import context_voor_agents as _journal_context
 
 client = anthropic.Anthropic()
 MODEL = "claude-sonnet-4-6"
@@ -174,11 +175,14 @@ def dagelijks():
 
     goals_ctx = _goals_context()
     log_ctx = _recent_log_context()
+    journal_ctx = _journal_context(days=5)
     system = SYSTEM_PROMPT
     if goals_ctx:
         system += f"\n\n{goals_ctx}"
     if log_ctx:
         system += f"\n\n{log_ctx}"
+    if journal_ctx:
+        system += f"\n\n{journal_ctx}"
 
     history = []
     yesterday = _get_yesterday_entry()
@@ -264,11 +268,14 @@ def chat(topic: str | None = None):
 
     goals_ctx = _goals_context()
     log_ctx = _recent_log_context()
+    journal_ctx = _journal_context(days=5)
     system = SYSTEM_PROMPT
     if goals_ctx:
         system += f"\n\n{goals_ctx}"
     if log_ctx:
         system += f"\n\n{log_ctx}"
+    if journal_ctx:
+        system += f"\n\n{journal_ctx}"
 
     history = []
 
