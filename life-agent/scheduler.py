@@ -1,5 +1,5 @@
 """
-Automatische dagelijkse planning — draait elke ochtend.
+Automatische dagelijkse taken — draait elke ochtend.
 Start met: python scheduler.py
 Of eenmalig uitvoeren: python scheduler.py --now
 """
@@ -9,7 +9,12 @@ import time
 from dotenv import load_dotenv
 load_dotenv()
 
+import morning_briefing
 from agents.planning_agent import run
+
+
+def ochtend_briefing():
+    morning_briefing.run()
 
 
 def ochtendplanning():
@@ -28,10 +33,14 @@ def ochtendplanning():
 
 if __name__ == "__main__":
     if "--now" in sys.argv:
+        ochtend_briefing()
         ochtendplanning()
     else:
+        schedule.every().day.at("07:00").do(ochtend_briefing)
         schedule.every().day.at("07:30").do(ochtendplanning)
-        print("Scheduler actief — dagplan wordt elke dag om 07:30 gegenereerd.")
+        print("Scheduler actief:")
+        print("  07:00 — Morning briefing")
+        print("  07:30 — Dagelijkse planning (Whoop + agenda + training)")
         print("Stop met Ctrl+C\n")
         while True:
             schedule.run_pending()
