@@ -1,154 +1,189 @@
-import json
-import os
 from datetime import datetime, timedelta
-import anthropic
 from tools import whoop_api, calendar_tools
-
-client = anthropic.Anthropic()
-MODEL = "claude-opus-4-7"
-
-TOOLS = [
-    {
-        "name": "get_whoop_recovery",
-        "description": "Haal de laatste recovery score, HRV en slaapkwaliteit op uit Whoop.",
-        "input_schema": {"type": "object", "properties": {}, "required": []},
-    },
-    {
-        "name": "get_whoop_sleep",
-        "description": "Haal de laatste slaapdata op uit Whoop (duur, efficiency, slaapscores).",
-        "input_schema": {"type": "object", "properties": {}, "required": []},
-    },
-    {
-        "name": "get_whoop_strain",
-        "description": "Haal de dagelijkse strain/belasting op uit Whoop.",
-        "input_schema": {"type": "object", "properties": {}, "required": []},
-    },
-    {
-        "name": "get_calendar_events",
-        "description": "Haal agenda-afspraken op voor een bepaalde periode.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "days_ahead": {
-                    "type": "integer",
-                    "description": "Hoeveel dagen vooruit kijken (standaard 7)",
-                },
-                "calendar_name": {
-                    "type": "string",
-                    "description": "Naam van de agenda (optioneel, pakt standaard agenda)",
-                },
-            },
-            "required": [],
-        },
-    },
-    {
-        "name": "add_calendar_event",
-        "description": "Voeg een afspraak of training toe aan de agenda.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "summary": {"type": "string", "description": "Titel van de afspraak"},
-                "start_iso": {"type": "string", "description": "Starttijd in ISO-8601 formaat, bijv. 2025-05-22T07:00:00"},
-                "end_iso": {"type": "string", "description": "Eindtijd in ISO-8601 formaat"},
-                "description": {"type": "string", "description": "Optionele beschrijving of notities"},
-                "calendar_name": {"type": "string", "description": "Naam van de agenda (optioneel)"},
-            },
-            "required": ["summary", "start_iso", "end_iso"],
-        },
-    },
-    {
-        "name": "list_calendars",
-        "description": "Geef een lijst van beschikbare agenda's in iCloud.",
-        "input_schema": {"type": "object", "properties": {}, "required": []},
-    },
-]
 
 DEFAULT_CALENDAR = "Niels AI agenda"
 
-SYSTEM_PROMPT = """Je bent een persoonlijke life-optimalisatie agent. Je helpt de gebruiker hun dag en week te plannen op basis van:
-- Whoop recovery en slaapdata (als de recovery laag is, plan je lichtere trainingen)
-- Bestaande agenda-afspraken
-- De wensen van de gebruiker
+TRAINING_TYPES = {
+    "rust": {
+        "naam": "Rust / Actief herstel",
+        "beschrijving": "Lichte wandeling of stretching. Geen zware belasting vandaag.",
+        "duur_min": 30,
+    },
+    "licht": {
+        "naam": "Lichte training",
+        "beschrijving": "Zone 2 cardio: rustig fietsen, joggen of zwemmen op lage intensiteit.",
+        "duur_min": 45,
+    },
+    "matig": {
+        "naam": "Matige training",
+        "beschrijving": "Krachtraining of cardio op middelhoge intensiteit. 60-70% van max.",
+        "duur_min": 60,
+    },
+    "zwaar": {
+        "naam": "Zware training",
+        "beschrijving": "HIIT, zware krachtraining of lange duurloop. Geef alles.",
+        "duur_min": 75,
+    },
+}
 
-Gebruik altijd de agenda 'Niels AI agenda' tenzij de gebruiker iets anders vraagt.
-Spreek altijd in het Nederlands. Wees direct en praktisch. Als je trainingen plant, houd dan rekening met:
-- Recovery score 0-33%: alleen lichte activiteit of rust
-- Recovery score 34-66%: matige training
-- Recovery score 67-100%: zware training mogelijk
 
-Vandaag is: {today}"""
+def _recovery_naar_type(recovery_score: float) -> str:
+    if recovery_score < 34:
+        return "rust"
+    elif recovery_score < 50:
+        return "licht"
+    elif recovery_score < 67:
+        return "matig"
+    else:
+        return "zwaar"
 
 
-def _execute_tool(name: str, inputs: dict) -> str:
+def _vrij_tijdslot(events: list[dict], datum: datetime, voorkeur_uur: int = 7) -> datetime:
+    """Zoek een vrij uur op de gegeven datum, begin bij voorkeur_uur."""
+    bezette_uren = set()
+    for e in events:
+        start = e["start"]
+        end = e["end"]
+        if not isinstance(start, datetime):
+            start = datetime.combine(start, datetime.min.time())
+        if end and not isinstance(end, datetime):
+            end = datetime.combine(end, datetime.min.time())
+        if start.date() == datum.date():
+            uur = start.hour
+            bezette_uren.add(uur)
+
+    for uur in [voorkeur_uur, 8, 9, 17, 18, 6]:
+        if uur not in bezette_uren:
+            return datum.replace(hour=uur, minute=0, second=0, microsecond=0)
+    return datum.replace(hour=voorkeur_uur, minute=0, second=0, microsecond=0)
+
+
+def get_status() -> str:
+    lijnen = []
+
     try:
-        if name == "get_whoop_recovery":
-            data = whoop_api.get_latest_recovery()
-            return json.dumps(data, default=str)
-        elif name == "get_whoop_sleep":
-            data = whoop_api.get_latest_sleep()
-            return json.dumps(data, default=str)
-        elif name == "get_whoop_strain":
-            data = whoop_api.get_todays_strain()
-            return json.dumps(data, default=str)
-        elif name == "get_calendar_events":
-            days = inputs.get("days_ahead", 7)
-            cal_name = inputs.get("calendar_name")
-            start = datetime.now()
-            end = start + timedelta(days=days)
-            events = calendar_tools.get_events(start, end, cal_name)
-            return json.dumps(events, default=str)
-        elif name == "add_calendar_event":
-            start = datetime.fromisoformat(inputs["start_iso"])
-            end = datetime.fromisoformat(inputs["end_iso"])
-            result = calendar_tools.add_event(
-                summary=inputs["summary"],
+        recovery = whoop_api.get_latest_recovery()
+        score = recovery.get("score", {}).get("recovery_score", None)
+        hrv = recovery.get("score", {}).get("hrv_rmssd_milli", None)
+        slaap_perf = recovery.get("score", {}).get("sleep_performance_percentage", None)
+
+        lijnen.append("=== Whoop Status ===")
+        if score is not None:
+            lijnen.append(f"Recovery score:   {score:.0f}%")
+        if hrv is not None:
+            lijnen.append(f"HRV:              {hrv:.1f} ms")
+        if slaap_perf is not None:
+            lijnen.append(f"Slaapkwaliteit:   {slaap_perf:.0f}%")
+
+        if score is not None:
+            training_type = _recovery_naar_type(score)
+            t = TRAINING_TYPES[training_type]
+            lijnen.append(f"\nAdvies vandaag:   {t['naam']}")
+            lijnen.append(f"                  {t['beschrijving']}")
+    except Exception as e:
+        lijnen.append(f"Whoop niet beschikbaar: {e}")
+
+    try:
+        nu = datetime.now()
+        events = calendar_tools.get_events(nu, nu + timedelta(days=2), DEFAULT_CALENDAR)
+        lijnen.append("\n=== Agenda (vandaag & morgen) ===")
+        if events:
+            for e in events:
+                start = e["start"]
+                tijd = start.strftime("%a %d %b %H:%M") if isinstance(start, datetime) else str(start)
+                lijnen.append(f"  {tijd}  {e['summary']}")
+        else:
+            lijnen.append("  Geen afspraken.")
+    except Exception as e:
+        lijnen.append(f"Agenda niet beschikbaar: {e}")
+
+    return "\n".join(lijnen)
+
+
+def maak_dagplan(toevoegen_aan_agenda: bool = True) -> str:
+    lijnen = []
+
+    try:
+        recovery = whoop_api.get_latest_recovery()
+        score = recovery.get("score", {}).get("recovery_score", 50)
+    except Exception as e:
+        lijnen.append(f"Whoop niet beschikbaar ({e}), gebruik standaard recovery van 50%.")
+        score = 50
+
+    training_type = _recovery_naar_type(score)
+    t = TRAINING_TYPES[training_type]
+
+    lijnen.append(f"Recovery vandaag: {score:.0f}%")
+    lijnen.append(f"Training advies:  {t['naam']}")
+    lijnen.append(f"                  {t['beschrijving']}")
+
+    if toevoegen_aan_agenda:
+        try:
+            nu = datetime.now()
+            events = calendar_tools.get_events(nu, nu + timedelta(days=1), DEFAULT_CALENDAR)
+            start = _vrij_tijdslot(events, nu, voorkeur_uur=7)
+            end = start + timedelta(minutes=t["duur_min"])
+            calendar_tools.add_event(
+                summary=f"Training: {t['naam']}",
                 start=start,
                 end=end,
-                description=inputs.get("description", ""),
-                calendar_name=inputs.get("calendar_name"),
+                description=t["beschrijving"],
+                calendar_name=DEFAULT_CALENDAR,
             )
-            return result
-        elif name == "list_calendars":
-            cals = calendar_tools.list_calendars()
-            return json.dumps(cals)
-        else:
-            return f"Onbekende tool: {name}"
-    except Exception as e:
-        return f"Fout bij uitvoeren van {name}: {e}"
+            lijnen.append(f"\nTraining ingepland: {start.strftime('%H:%M')}–{end.strftime('%H:%M')}")
+        except Exception as e:
+            lijnen.append(f"\nKon training niet inplannen: {e}")
+
+    return "\n".join(lijnen)
 
 
-def run(user_message: str) -> str:
-    messages = [{"role": "user", "content": user_message}]
-    system = SYSTEM_PROMPT.format(today=datetime.now().strftime("%A %d %B %Y"))
+def maak_weekplan(toevoegen_aan_agenda: bool = True) -> str:
+    lijnen = ["=== Weekplan trainingen ===\n"]
 
-    while True:
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=4096,
-            system=system,
-            tools=TOOLS,
-            messages=messages,
-        )
+    try:
+        recovery = whoop_api.get_latest_recovery()
+        basis_score = recovery.get("score", {}).get("recovery_score", 50)
+    except Exception:
+        basis_score = 50
 
-        if response.stop_reason == "end_turn":
-            return next(
-                (block.text for block in response.content if hasattr(block, "text")),
-                "(geen antwoord)"
-            )
+    # Afwisselend schema gebaseerd op huidige recovery
+    # Patroon: training, rust, training, training, rust, training, rust
+    patroon = ["training", "rust", "training", "training", "rust", "training", "rust"]
 
-        if response.stop_reason == "tool_use":
-            messages.append({"role": "assistant", "content": response.content})
-            tool_results = []
-            for block in response.content:
-                if block.type == "tool_use":
-                    result = _execute_tool(block.name, block.input)
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": result,
-                    })
-            messages.append({"role": "user", "content": tool_results})
-        else:
-            break
+    nu = datetime.now()
+    try:
+        events = calendar_tools.get_events(nu, nu + timedelta(days=7), DEFAULT_CALENDAR)
+    except Exception:
+        events = []
 
-    return "(onverwacht einde van gesprek)"
+    for dag_offset, dag_type in enumerate(patroon):
+        dag = nu + timedelta(days=dag_offset)
+        dagnaam = dag.strftime("%A %d %b")
+
+        if dag_type == "rust":
+            lijnen.append(f"{dagnaam}: Rust / actief herstel")
+            continue
+
+        # Score varieert per dag (herstel neemt toe na rustdagen)
+        score = min(100, basis_score + (dag_offset * 3))
+        training_type = _recovery_naar_type(score)
+        t = TRAINING_TYPES[training_type]
+
+        lijnen.append(f"{dagnaam}: {t['naam']} ({t['duur_min']} min)")
+
+        if toevoegen_aan_agenda:
+            try:
+                start = _vrij_tijdslot(events, dag, voorkeur_uur=7)
+                end = start + timedelta(minutes=t["duur_min"])
+                calendar_tools.add_event(
+                    summary=f"Training: {t['naam']}",
+                    start=start,
+                    end=end,
+                    description=t["beschrijving"],
+                    calendar_name=DEFAULT_CALENDAR,
+                )
+                lijnen[-1] += f" → {start.strftime('%H:%M')}"
+            except Exception as e:
+                lijnen[-1] += f" (niet ingepland: {e})"
+
+    return "\n".join(lijnen)
