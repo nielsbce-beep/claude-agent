@@ -62,7 +62,15 @@ def get_events(start: datetime, end: datetime, calendar_name: str | None = None)
             })
         except Exception:
             continue
-    return sorted(result, key=lambda e: e["start"] if isinstance(e["start"], datetime) else datetime.combine(e["start"], datetime.min.time()))
+    def _sort_key(e):
+        s = e["start"]
+        if not isinstance(s, datetime):
+            s = datetime.combine(s, datetime.min.time())
+        if s.tzinfo is not None:
+            s = s.replace(tzinfo=None)
+        return s
+
+    return sorted(result, key=_sort_key)
 
 
 def add_event(
