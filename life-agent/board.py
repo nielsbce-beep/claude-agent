@@ -1,6 +1,9 @@
+import sys
 import anthropic
 from dotenv import load_dotenv
 load_dotenv()
+
+sys.stdout.reconfigure(encoding="utf-8")
 
 from agents.planning_board_agent import PlanningBoardAgent
 from agents.sport_agent import SportAgent
