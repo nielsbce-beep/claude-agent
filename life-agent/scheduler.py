@@ -11,6 +11,7 @@ load_dotenv()
 
 import morning_briefing
 import avond_checkin
+import weekly_review
 from agents.planning_agent import run
 
 
@@ -40,10 +41,12 @@ if __name__ == "__main__":
         schedule.every().day.at("07:00").do(ochtend_briefing)
         schedule.every().day.at("07:30").do(ochtendplanning)
         schedule.every().day.at("21:00").do(avond_checkin.run)
+        schedule.every().sunday.at("10:00").do(weekly_review.run)
         print("Scheduler actief:")
         print("  07:00 — Morning briefing")
         print("  07:30 — Dagelijkse planning (Whoop + agenda + training)")
         print("  21:00 — Avond check-in")
+        print("  Zondag 10:00 — Wekelijkse review")
         print("Stop met Ctrl+C\n")
         while True:
             schedule.run_pending()
