@@ -61,25 +61,26 @@ def _vrij_tijdslot(events: list[dict], datum: datetime, voorkeur_uur: int = 7) -
 def get_status() -> str:
     lijnen = []
 
+    lijnen.append("=== Whoop Status ===")
     try:
         recovery = whoop_api.get_latest_recovery()
         score = recovery.get("score", {}).get("recovery_score", None)
         hrv = recovery.get("score", {}).get("hrv_rmssd_milli", None)
         slaap_perf = recovery.get("score", {}).get("sleep_performance_percentage", None)
 
-        lijnen.append("=== Whoop Status ===")
         if score is not None:
             lijnen.append(f"Recovery score:   {score:.0f}%")
-        if hrv is not None:
-            lijnen.append(f"HRV:              {hrv:.1f} ms")
-        if slaap_perf is not None:
-            lijnen.append(f"Slaapkwaliteit:   {slaap_perf:.0f}%")
-
-        if score is not None:
+            if hrv is not None:
+                lijnen.append(f"HRV:              {hrv:.1f} ms")
+            if slaap_perf is not None:
+                lijnen.append(f"Slaapkwaliteit:   {slaap_perf:.0f}%")
             training_type = _recovery_naar_type(score)
             t = TRAINING_TYPES[training_type]
             lijnen.append(f"\nAdvies vandaag:   {t['naam']}")
             lijnen.append(f"                  {t['beschrijving']}")
+        else:
+            lijnen.append("Nog geen recovery score — Whoop berekent dit na je eerste volledige slaap.")
+            lijnen.append("Advies vandaag:   Matige training (standaard tot eerste meting beschikbaar is)")
     except Exception as e:
         lijnen.append(f"Whoop niet beschikbaar: {e}")
 

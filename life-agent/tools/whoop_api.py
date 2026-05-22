@@ -102,8 +102,9 @@ def get_headers() -> dict:
     if not token:
         token = authenticate()
 
-    resp = requests.get(f"{WHOOP_BASE_URL}/user/profile/basic",
-                        headers={"Authorization": f"Bearer {token['access_token']}"})
+    resp = requests.get(f"{WHOOP_BASE_URL}/cycle",
+                        headers={"Authorization": f"Bearer {token['access_token']}"},
+                        params={"limit": 1})
     if resp.status_code == 401:
         token = _refresh_token(token)
 
@@ -114,6 +115,8 @@ def get_latest_recovery() -> dict:
     headers = get_headers()
     resp = requests.get(f"{WHOOP_BASE_URL}/recovery", headers=headers,
                         params={"limit": 1})
+    if resp.status_code == 404:
+        return {}
     resp.raise_for_status()
     records = resp.json().get("records", [])
     return records[0] if records else {}
@@ -123,6 +126,8 @@ def get_latest_sleep() -> dict:
     headers = get_headers()
     resp = requests.get(f"{WHOOP_BASE_URL}/activity/sleep", headers=headers,
                         params={"limit": 1})
+    if resp.status_code == 404:
+        return {}
     resp.raise_for_status()
     records = resp.json().get("records", [])
     return records[0] if records else {}
