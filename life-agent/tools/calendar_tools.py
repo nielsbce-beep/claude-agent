@@ -136,6 +136,23 @@ def add_event(
     return f"Event '{summary}' aangemaakt op {start.strftime('%d-%m-%Y %H:%M')}"
 
 
+def delete_events_by_prefix(prefix: str, start: datetime, end: datetime, calendar_name: str | None = None) -> int:
+    client = _get_client()
+    cal = _get_calendar(client, calendar_name)
+    events = cal.date_search(start=start, end=end, expand=True)
+    deleted = 0
+    for event in events:
+        try:
+            vevent = list(event.vobject_instance.vevent_list)[0]
+            title = str(vevent.summary.value) if hasattr(vevent, "summary") else ""
+            if title.lower().startswith(prefix.lower()):
+                event.delete()
+                deleted += 1
+        except Exception:
+            continue
+    return deleted
+
+
 def delete_event(summary: str, date: datetime, calendar_name: str | None = None) -> str:
     client = _get_client()
     cal = _get_calendar(client, calendar_name)

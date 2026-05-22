@@ -1,3 +1,303 @@
 {
-  "goals": []
+  "goals": [
+    {
+      "id": "aafdfe8a",
+      "title": "Studie periode 4 halen",
+      "description": "Alle tentamens halen: Vloeistofmechanica (16 jun), Waterbouwkunde (19 jun), Numerieke Wiskunde (25 jun), Hydrologie Deeltoets 2 (12 jun)",
+      "category": "studie",
+      "deadline": "2026-06-25",
+      "milestones": [
+        {
+          "text": "Deeltoets 2 Hydrologie halen (12 jun)",
+          "done": false
+        },
+        {
+          "text": "Tentamen Vloeistofmechanica halen (16 jun)",
+          "done": false
+        },
+        {
+          "text": "Tentamen Waterbouwkunde halen (19 jun)",
+          "done": false
+        },
+        {
+          "text": "Tentamen Numerieke Wiskunde halen (25 jun)",
+          "done": false
+        },
+        {
+          "text": "Numerieke Wiskunde MUMIE opdrachten af (12 jun)",
+          "done": false
+        }
+      ],
+      "progress": 0,
+      "check_ins": [],
+      "created_at": "2026-05-22T17:34:19.555990",
+      "status": "active"
+    },
+    {
+      "id": "b04e5a6f",
+      "title": "Financiele vrijheid: 25.000 euro eind 2029",
+      "description": "Nu 4000 euro belegd. Met 10% rendement per jaar en maandelijkse inleg groeien naar 25.000 euro eind 2029.",
+      "category": "financieel",
+      "deadline": "2029-12-31",
+      "milestones": [
+        {
+          "text": "Maandelijkse inleg bepalen en automatiseren",
+          "done": false
+        },
+        {
+          "text": "6.000 euro bereikt (eind 2026)",
+          "done": false
+        },
+        {
+          "text": "10.000 euro bereikt (2027)",
+          "done": false
+        },
+        {
+          "text": "16.000 euro bereikt (2028)",
+          "done": false
+        },
+        {
+          "text": "25.000 euro bereikt (eind 2029)",
+          "done": false
+        }
+      ],
+      "progress": 0,
+      "check_ins": [],
+      "created_at": "2026-05-22T17:34:19.577001",
+      "status": "active"
+    },
+    {
+      "id": "c25f0003",
+      "title": "Halve marathon lopen (eind 2026)",
+      "description": "Looptijd: 7.67km in 35.5 min (4:37/km). Opbouw via wekelijks schema naar 21.1km. Doel: finishen in ~1:45-1:50.",
+      "category": "sport",
+      "deadline": "2026-11-07",
+      "milestones": [
+        {
+          "text": "Eerste 14km aaneengesloten lopen",
+          "done": false
+        },
+        {
+          "text": "Eerste 18km lopen",
+          "done": false
+        },
+        {
+          "text": "Eerste volledige 21km lopen (week 13)",
+          "done": false
+        },
+        {
+          "text": "Halve marathon finishen onder 1:55",
+          "done": false
+        }
+      ],
+      "progress": 0,
+      "check_ins": [],
+      "created_at": "2026-05-22T17:34:19.598117",
+      "status": "active"
+    },
+    {
+      "id": "fc03fc53",
+      "title": "120kg benchen",
+      "description": "Nu op 115kg. Progressief ophogen via gym schema (maandag/donderdag/vrijdag).",
+      "category": "sport",
+      "deadline": "2026-12-31",
+      "milestones": [
+        {
+          "text": "117.5kg bereikt",
+          "done": false
+        },
+        {
+          "text": "120kg bereikt",
+          "done": false
+        }
+      ],
+      "progress": 0,
+      "check_ins": [],
+      "created_at": "2026-05-22T17:34:19.610741",
+      "status": "active"
+    },
+    {
+      "id": "1a61bc87",
+      "title": "Spiermassa opbouwen",
+      "description": "Consistent gym schema (3x/week) volgen en progressieve overload toepassen. Voeding optimaliseren.",
+      "category": "sport",
+      "deadline": "2026-12-31",
+      "milestones": [
+        {
+          "text": "Alle gewichten 3x gym 4 weken volgehouden",
+          "done": false
+        },
+        {
+          "text": "Alle oefeningen gewicht verhoogd t.o.v. start",
+          "done": false
+        },
+        {
+          "text": "Zichtbare spiermassa winst na 3 maanden",
+          "done": false
+        }
+      ],
+      "progress": 0,
+      "check_ins": [],
+      "created_at": "2026-05-22T17:34:19.629588",
+      "status": "active"
+    },
+    {
+      "id": "d761b98d",
+      "title": "VO2max van 53 naar 58",
+      "description": "VO2max verbeteren via wekelijkse runs en cardio. Whoop tracking voor voortgang.",
+      "category": "sport",
+      "deadline": "2026-12-31",
+      "milestones": [
+        {
+          "text": "VO2max 54 bereikt",
+          "done": false
+        },
+        {
+          "text": "VO2max 56 bereikt",
+          "done": false
+        },
+        {
+          "text": "VO2max 58 bereikt",
+          "done": false
+        }
+      ],
+      "progress": 0,
+      "check_ins": [],
+      "created_at": "2026-05-22T17:34:19.649540",
+      "status": "active"
+    },
+    {
+      "id": "39e5cffc",
+      "title": "Stijl verbeteren: elk kwartaal kleding",
+      "description": "Elke 3 weken een kledingstuk kopen dat past bij een sterkere, verzorgdere uitstraling.",
+      "category": "persoonlijk",
+      "deadline": "2026-12-31",
+      "milestones": [
+        {
+          "text": "Eerste kledingstuk gekocht (voor 15 jun)",
+          "done": false
+        },
+        {
+          "text": "4 kledingstukken in 3 maanden",
+          "done": false
+        },
+        {
+          "text": "Vaste stijl ontwikkeld (kapsel, kleuren, pasvorm)",
+          "done": false
+        }
+      ],
+      "progress": 0,
+      "check_ins": [],
+      "created_at": "2026-05-22T17:34:19.673526",
+      "status": "active"
+    },
+    {
+      "id": "e2d36f9b",
+      "title": "Elk maand een boek uitlezen",
+      "description": "Minimaal 12 boeken dit jaar. Breed: business, mindset, filosofie, techniek.",
+      "category": "persoonlijk",
+      "deadline": "2026-12-31",
+      "milestones": [
+        {
+          "text": "Eerste boek uitgelezen (voor 30 jun)",
+          "done": false
+        },
+        {
+          "text": "3 boeken uitgelezen (eind aug)",
+          "done": false
+        },
+        {
+          "text": "6 boeken uitgelezen (eind sep)",
+          "done": false
+        },
+        {
+          "text": "12 boeken uitgelezen (eind dec)",
+          "done": false
+        }
+      ],
+      "progress": 0,
+      "check_ins": [],
+      "created_at": "2026-05-22T17:34:19.695879",
+      "status": "active"
+    },
+    {
+      "id": "56d8ecff",
+      "title": "Side hustle: extra inkomen genereren",
+      "description": "Via de opportunity agent kansen spotten en uitwerken. Doel: eerste euro verdienen buiten werk om.",
+      "category": "financieel",
+      "deadline": "2026-12-31",
+      "milestones": [
+        {
+          "text": "Opportunity agent geraadpleegd, 3 kansen uitgewerkt",
+          "done": false
+        },
+        {
+          "text": "Eerste niche of product gekozen",
+          "done": false
+        },
+        {
+          "text": "Eerste euro verdiend via side hustle",
+          "done": false
+        },
+        {
+          "text": "100 euro/maand passief of actief inkomen",
+          "done": false
+        }
+      ],
+      "progress": 0,
+      "check_ins": [],
+      "created_at": "2026-05-22T17:34:19.723200",
+      "status": "active"
+    },
+    {
+      "id": "c9c5cc48",
+      "title": "Testosteron optimaliseren",
+      "description": "Hoge testosteronniveaus via slaap, training, voeding en stressmanagement. Whoop als proxy.",
+      "category": "persoonlijk",
+      "deadline": "2026-12-31",
+      "milestones": [
+        {
+          "text": "Slaapkwaliteit structureel boven 80% (Whoop)",
+          "done": false
+        },
+        {
+          "text": "HRV stabiel boven 100ms",
+          "done": false
+        },
+        {
+          "text": "Bloedwaarden laten checken (testosteron meting)",
+          "done": false
+        }
+      ],
+      "progress": 0,
+      "check_ins": [],
+      "created_at": "2026-05-22T17:34:19.748049",
+      "status": "active"
+    },
+    {
+      "id": "aafc6c8a",
+      "title": "Praktisch handiger worden",
+      "description": "Regelmatig iets met je handen doen: klusjes, bouwen, repareren. Skill opbouwen.",
+      "category": "persoonlijk",
+      "deadline": "2026-12-31",
+      "milestones": [
+        {
+          "text": "Eerste klus zelfstandig uitgevoerd",
+          "done": false
+        },
+        {
+          "text": "Basisgereedschap aangeschaft",
+          "done": false
+        },
+        {
+          "text": "5 praktische projecten gedaan",
+          "done": false
+        }
+      ],
+      "progress": 0,
+      "check_ins": [],
+      "created_at": "2026-05-22T17:34:19.776315",
+      "status": "active"
+    }
+  ]
 }
