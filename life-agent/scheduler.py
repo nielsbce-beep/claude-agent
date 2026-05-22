@@ -12,7 +12,7 @@ load_dotenv()
 import morning_briefing
 import avond_checkin
 import weekly_review
-from agents.planning_agent import run
+from agents.planning_agent import maak_dagplan
 
 
 def ochtend_briefing():
@@ -21,14 +21,7 @@ def ochtend_briefing():
 
 def ochtendplanning():
     print("=== Dagelijkse planning ===")
-    result = run(
-        "Goedemorgen! Maak mijn dagplan: "
-        "1) Haal mijn Whoop recovery en slaapdata op. "
-        "2) Bekijk mijn agenda van vandaag. "
-        "3) Plan een training in op basis van mijn recovery (voeg toe aan agenda). "
-        "4) Geef me 3 prioriteiten voor vandaag. "
-        "Wees kort en praktisch."
-    )
+    result = maak_dagplan(toevoegen_aan_agenda=True)
     print(result)
     print("===========================\n")
 
