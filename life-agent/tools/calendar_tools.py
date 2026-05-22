@@ -30,6 +30,13 @@ def _get_calendar(client: caldav.DAVClient, calendar_name: str | None = None):
     return calendars[0]
 
 
+def create_calendar(name: str) -> str:
+    client = _get_client()
+    principal = client.principal()
+    principal.make_calendar(name=name)
+    return f"Agenda '{name}' aangemaakt."
+
+
 def list_calendars() -> list[str]:
     client = _get_client()
     principal = client.principal()
