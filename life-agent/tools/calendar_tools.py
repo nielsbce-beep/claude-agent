@@ -73,13 +73,53 @@ def get_events(start: datetime, end: datetime, calendar_name: str | None = None)
     return sorted(result, key=_sort_key)
 
 
+def _to_naive(dt) -> datetime:
+    if not isinstance(dt, datetime):
+        return datetime.combine(dt, datetime.min.time())
+    return dt.replace(tzinfo=None) if dt.tzinfo else dt
+
+
+def get_overlapping_events(
+    start: datetime,
+    end: datetime,
+    calendar_name: str | None = None,
+) -> list[dict]:
+    client = _get_client()
+    cal = _get_calendar(client, calendar_name)
+    candidates = cal.date_search(start=start, end=end, expand=True)
+    overlaps = []
+    for event in candidates:
+        try:
+            vevent = list(event.vobject_instance.vevent_list)[0]
+            e_start = _to_naive(vevent.dtstart.value)
+            e_end = _to_naive(vevent.dtend.value) if hasattr(vevent, "dtend") else e_start + timedelta(hours=1)
+            s = _to_naive(start)
+            e = _to_naive(end)
+            if e_start < e and e_end > s:
+                overlaps.append({
+                    "summary": str(vevent.summary.value) if hasattr(vevent, "summary") else "?",
+                    "start": e_start,
+                    "end": e_end,
+                })
+        except Exception:
+            continue
+    return overlaps
+
+
 def add_event(
     summary: str,
     start: datetime,
     end: datetime,
     description: str = "",
     calendar_name: str | None = None,
+    skip_if_overlap: bool = False,
 ) -> str:
+    if skip_if_overlap:
+        overlaps = get_overlapping_events(start, end, calendar_name)
+        if overlaps:
+            names = ", ".join(o["summary"] for o in overlaps)
+            return f"OVERGESLAGEN: '{summary}' overlapt met: {names}"
+
     client = _get_client()
     cal = _get_calendar(client, calendar_name)
 
