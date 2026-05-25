@@ -1,0 +1,36 @@
+{
+  "goals": [
+    {
+      "id": "goal-001",
+      "title": "Run a half marathon",
+      "category": "sport",
+      "deadline": "2026-12-31",
+      "progress": 10,
+      "status": "active",
+      "milestones": [
+        {"title": "Run 5km without stopping", "completed": true},
+        {"title": "Run 10km", "completed": false},
+        {"title": "Run 15km", "completed": false},
+        {"title": "Complete half marathon", "completed": false}
+      ],
+      "check_ins": [],
+      "created_at": "2026-01-01"
+    },
+    {
+      "id": "goal-002",
+      "title": "Save €10,000",
+      "category": "finance",
+      "deadline": "2026-12-31",
+      "progress": 25,
+      "status": "active",
+      "milestones": [
+        {"title": "Reach €2,500", "completed": true},
+        {"title": "Reach €5,000", "completed": false},
+        {"title": "Reach €7,500", "completed": false},
+        {"title": "Reach €10,000", "completed": false}
+      ],
+      "check_ins": [],
+      "created_at": "2026-01-01"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "holdings": [
+    {
+      "name": "World ETF (e.g. VWCE)",
+      "type": "etf",
+      "value": 5000,
+      "cost_basis": 4500,
+      "notes": "Core position, monthly DCA"
+    },
+    {
+      "name": "Gold ETC",
+      "type": "commodity",
+      "value": 500,
+      "cost_basis": 480,
+      "notes": "Inflation hedge, ~5% allocation"
+    },
+    {
+      "name": "Bitcoin",
+      "type": "crypto",
+      "value": 300,
+      "cost_basis": 250,
+      "notes": "Speculative, max 5% of portfolio"
+    }
+  ],
+  "monthly_contribution": 200,
+  "target": 25000,
+  "target_year": 2030,
+  "currency": "EUR"
+}
