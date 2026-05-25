@@ -9,7 +9,7 @@ import anthropic
 from datetime import datetime, date, timedelta
 from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(Path(__file__).parent / ".env", override=True)
 
 sys.stdout.reconfigure(encoding="utf-8")
 

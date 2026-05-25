@@ -6,8 +6,9 @@ Of eenmalig uitvoeren: python scheduler.py --now
 import sys
 import schedule
 import time
+from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(Path(__file__).parent / ".env", override=True)
 
 import morning_briefing
 import avond_checkin

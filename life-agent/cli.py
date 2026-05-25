@@ -1,6 +1,7 @@
 import click
+from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(Path(__file__).parent / ".env", override=True)
 
 from agents.planning_agent import get_status, maak_dagplan, maak_weekplan
 from tools.whoop_api import authenticate
