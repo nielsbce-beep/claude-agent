@@ -25,6 +25,7 @@ from journal_agent import context_voor_agents as _journal_context, _recent_entri
 client = anthropic.Anthropic()
 MODEL = "claude-sonnet-4-6"
 GROWTH_LOG = Path(__file__).parent / "data" / "growth_log.json"
+TODOS_FILE = Path(__file__).parent / "data" / "todos.json"
 W = 57  # line width
 
 
@@ -270,6 +271,28 @@ def _section_commitment() -> list[str]:
     return lines
 
 
+def _load_todos() -> list[dict]:
+    if TODOS_FILE.exists():
+        data = json.loads(TODOS_FILE.read_text(encoding="utf-8"))
+        return [t for t in data.get("todos", []) if not t.get("done")]
+    return []
+
+
+def _section_todos() -> list[str]:
+    todos = _load_todos()
+    lines = ["ONTHOUDEN"]
+    if not todos:
+        return []  # Geen sectie als er niks is
+    priority_icon = {"high": "🔴", "medium": "🟡", "low": "⚪"}
+    for t in todos:
+        icon = priority_icon.get(t.get("priority", "low"), "⚪")
+        title = t["title"]
+        if len(title) > 44:
+            title = title[:42] + ".."
+        lines.append(f"  {icon}  {title}")
+    return lines
+
+
 def _section_focus(whoop: dict, events: list[dict], goals: list[dict], commitment: dict | None, journal_ctx: str = "") -> list[str]:
     """Ask Claude for 3 concrete focus points based on all data."""
     today = date.today()
@@ -363,6 +386,7 @@ def run():
         _section_calendar(events),
         _section_goals(goals),
         _section_commitment(),
+        _section_todos(),
         _section_focus(whoop, events, goals, commit, journal),
     ]
 
