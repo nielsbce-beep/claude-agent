@@ -25,7 +25,8 @@
       "Bash(git push *)",
       "Bash(pip show *)",
       "Bash(python -m pip show reportlab)",
-      "Bash(python -m pip install reportlab -q)"
+      "Bash(python -m pip install reportlab -q)",
+      "Bash(git commit *)"
     ]
   }
 }
