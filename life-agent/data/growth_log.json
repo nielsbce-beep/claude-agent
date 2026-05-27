@@ -3,7 +3,13 @@
     {
       "date": "2026-05-22",
       "commitment": "Schrijf vóór 10:00 uur op papier hoeveel tentamens je hebt in periode 4, wat de exacte data zijn, en geef jezelf een cijfer van 1-10 voor je huidige voorbereiding per vak.",
-      "achieved": null
+      "achieved": false
+    },
+    {
+      "date": "2026-05-26",
+      "commitment": "Upper day gym + NW lecture 4 + WBK lecture 7",
+      "achieved": true,
+      "notes": "Gym: Shoulder press 32kg 8x/7x, lat pull-down 84kg 7x & 78kg 9x, chest press 80kg 6x & 70kg 7x, bicep preacher curl 20kg 6x & 18kg 8x, skullcrushers 30kg 2x10, machine row 80kg 2x7. Studie: NW lecture 4 ✓, WBK lecture 7 ✓."
     }
   ]
 }

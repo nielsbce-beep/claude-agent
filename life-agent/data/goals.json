@@ -28,8 +28,14 @@
           "done": false
         }
       ],
-      "progress": 0,
-      "check_ins": [],
+      "progress": 10,
+      "check_ins": [
+        {
+          "date": "2026-05-26T21:00:00",
+          "note": "NW lecture 4 gedaan. WBK lecture 7 gedaan. NW staat nu op lecture 4 (van 8 in te halen), WBK op lecture 7 (van 16 totaal).",
+          "progress": 10
+        }
+      ],
       "created_at": "2026-05-22T17:34:19.555990",
       "status": "active"
     },
@@ -111,8 +117,14 @@
           "done": false
         }
       ],
-      "progress": 0,
-      "check_ins": [],
+      "progress": 5,
+      "check_ins": [
+        {
+          "date": "2026-05-26T21:00:00",
+          "note": "Upper day: Chest press machine 80kg 6x, 70kg 7x. Shoulder press 32kg 8x/7x. Basis ligt er.",
+          "progress": 5
+        }
+      ],
       "created_at": "2026-05-22T17:34:19.610741",
       "status": "active"
     },
@@ -136,8 +148,14 @@
           "done": false
         }
       ],
-      "progress": 0,
-      "check_ins": [],
+      "progress": 5,
+      "check_ins": [
+        {
+          "date": "2026-05-26T21:00:00",
+          "note": "Upper day voltooid. Shoulder press 32kg 8x/7x, lat pull-down 84kg 7x, chest press 80kg 6x, bicep curl 20kg 6x, skullcrushers 30kg 2x10, machine row 80kg 2x7.",
+          "progress": 5
+        }
+      ],
       "created_at": "2026-05-22T17:34:19.629588",
       "status": "active"
     },

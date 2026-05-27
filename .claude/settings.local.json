@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:jfk.men)",
+      "PowerShell(& \"C:\\\\Users\\\\niels\\\\anaconda3\\\\python.exe\" -c \"import PIL; print\\('Pillow OK:', PIL.__version__\\)\")",
+      "Bash(ls \"C:/Windows/Fonts/\" | grep -i \"impact\\\\|IMPACT\")",
+      "Bash(pip install *)",
+      "PowerShell(pip install *)",
+      "PowerShell(python --version; python -m pip install -r requirements.txt)",
+      "Bash(python -m pip install -r requirements.txt)",
+      "Bash(python -c ' *)",
+      "Bash(python cli.py status)",
+      "Bash(python morning_briefing.py)",
+      "Bash(python -c \"from dotenv import load_dotenv; load_dotenv\\(\\); import os; key = os.getenv\\('ANTHROPIC_API_KEY'\\); print\\('Key found:', bool\\(key\\), '| Length:', len\\(key\\) if key else 0\\)\")",
+      "Bash(python -c \"from dotenv import load_dotenv; load_dotenv\\(\\); import os; key = os.getenv\\('ANTHROPIC_API_KEY'\\); print\\('Key found:', bool\\(key\\)\\)\")",
+      "Bash(python -c \"import dotenv; dotenv.load_dotenv\\('.env'\\); import os; key = os.getenv\\('ANTHROPIC_API_KEY'\\); print\\(repr\\(key[:20]\\) if key else 'None'\\)\")",
+      "Bash(python -c \"with open\\('.env'\\) as f: print\\(repr\\(f.read\\(\\)[:200]\\)\\)\")",
+      "Bash(python verplaats_naar_morgen.py)",
+      "Bash(cp 'C:/Users/niels/Claude agent/life-agent/__TRACKED_VAR__' 'C:/Users/niels/Claude agent/gumroad-product/__TRACKED_VAR__')",
+      "Bash(cp 'C:/Users/niels/Claude agent/life-agent/agents/__TRACKED_VAR__' 'C:/Users/niels/Claude agent/gumroad-product/agents/__TRACKED_VAR__')",
+      "Bash(cp 'C:/Users/niels/Claude agent/life-agent/tools/__TRACKED_VAR__' 'C:/Users/niels/Claude agent/gumroad-product/tools/__TRACKED_VAR__')",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(pip show *)",
+      "Bash(python -m pip show reportlab)",
+      "Bash(python -m pip install reportlab -q)"
+    ]
+  }
+}
