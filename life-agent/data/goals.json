@@ -28,12 +28,17 @@
           "done": false
         }
       ],
-      "progress": 10,
+      "progress": 25,
       "check_ins": [
         {
           "date": "2026-05-26T21:00:00",
           "note": "NW lecture 4 gedaan. WBK lecture 7 gedaan. NW staat nu op lecture 4 (van 8 in te halen), WBK op lecture 7 (van 16 totaal).",
           "progress": 10
+        },
+        {
+          "date": "2026-05-28T00:00:00",
+          "note": "NW lecture 6 en 7 afgerond. NW nu op lecture 7/8 — nog 1 lecture te gaan. MUMIE opdrachten gestart (deadline 12 jun).",
+          "progress": 25
         }
       ],
       "created_at": "2026-05-22T17:34:19.555990",
