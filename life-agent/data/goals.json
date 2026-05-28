@@ -24,7 +24,19 @@
           "done": false
         },
         {
-          "text": "Numerieke Wiskunde MUMIE opdrachten af (12 jun)",
+          "text": "MUMIE 6: Numerical time integration (deadline 1 jun)",
+          "done": false
+        },
+        {
+          "text": "MUMIE 3: Numerical differentiation (deadline 5 jun)",
+          "done": false
+        },
+        {
+          "text": "MUMIE 7: Finite-difference method (deadline 12 jun)",
+          "done": false
+        },
+        {
+          "text": "MUMIE 4: Nonlinear equations (deadline 12 jun)",
           "done": false
         }
       ],
