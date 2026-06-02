@@ -25,7 +25,7 @@
         },
         {
           "text": "MUMIE 6: Numerical time integration (deadline 1 jun)",
-          "done": false
+          "done": true
         },
         {
           "text": "MUMIE 3: Numerical differentiation (deadline 5 jun)",
@@ -40,7 +40,7 @@
           "done": false
         }
       ],
-      "progress": 25,
+      "progress": 40,
       "check_ins": [
         {
           "date": "2026-05-26T21:00:00",
@@ -51,6 +51,11 @@
           "date": "2026-05-28T00:00:00",
           "note": "NW lecture 6 en 7 afgerond. NW nu op lecture 7/8 — nog 1 lecture te gaan. MUMIE opdrachten gestart (deadline 12 jun).",
           "progress": 25
+        },
+        {
+          "date": "2026-06-02T00:00:00",
+          "note": "WBK week 4 klaar: lecture 7 en 8 gedaan. MUMIE 6 (Numerical time integration) afgerond voor deadline. Hydrologie lecture Stedelijk Water gedaan.",
+          "progress": 40
         }
       ],
       "created_at": "2026-05-22T17:34:19.555990",
