@@ -17,7 +17,7 @@ from tools.goals_store import get_all, get_active
 from tools.whoop_history import get_recovery_trend, get_sleep_trend, get_training_summary
 from journal_agent import context_voor_agents as _journal_context
 
-client = anthropic.Anthropic()
+client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
 MODEL  = "claude-sonnet-4-6"
 TODAY  = datetime.now().strftime("%A %d %B %Y")
 W      = 57

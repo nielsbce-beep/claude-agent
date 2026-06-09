@@ -13,7 +13,7 @@ load_dotenv(Path(__file__).parent / ".env", override=True)
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-client = anthropic.Anthropic()
+client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
 MODEL = "claude-sonnet-4-6"
 TODAY = datetime.now().strftime("%A %d %B %Y")
 TODAY_DATE = date.today().isoformat()

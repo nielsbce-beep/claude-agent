@@ -11,7 +11,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 from tools.goals_store import get_active, format_goals_summary
 from journal_agent import context_voor_agents as _journal_context
 
-client = anthropic.Anthropic()
+client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
 MODEL = "claude-sonnet-4-6"
 TODAY = datetime.now().strftime("%A %d %B %Y")
 TODAY_DATE = date.today().isoformat()

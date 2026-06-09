@@ -22,7 +22,7 @@ from tools.whoop_history import (
 )
 from journal_agent import context_voor_agents as _journal_context, _recent_entries
 
-client = anthropic.Anthropic()
+client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
 MODEL = "claude-sonnet-4-6"
 GROWTH_LOG = Path(__file__).parent / "data" / "growth_log.json"
 TODOS_FILE = Path(__file__).parent / "data" / "todos.json"

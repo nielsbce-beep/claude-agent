@@ -46,7 +46,7 @@ def board_meeting(question: str):
     print(DIVIDER)
 
     board_summary = "\n".join(f"[{name}]: {resp}" for name, resp in responses)
-    client = anthropic.Anthropic()
+    client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
     consensus = client.messages.create(
         model=MODEL,
         max_tokens=512,

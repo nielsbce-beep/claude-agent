@@ -14,7 +14,7 @@ from tools.goals_store import (
 )
 from tools.calendar_tools import add_event
 
-client = anthropic.Anthropic()
+client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
 MODEL = "claude-sonnet-4-6"
 TODAY = datetime.now().strftime("%A %d %B %Y")
 
