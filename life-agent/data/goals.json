@@ -40,7 +40,7 @@
           "done": false
         }
       ],
-      "progress": 40,
+      "progress": 50,
       "check_ins": [
         {
           "date": "2026-05-26T21:00:00",
@@ -56,6 +56,11 @@
           "date": "2026-06-02T00:00:00",
           "note": "WBK week 4 klaar: lecture 7 en 8 gedaan. MUMIE 6 (Numerical time integration) afgerond voor deadline. Hydrologie lecture Stedelijk Water gedaan.",
           "progress": 40
+        },
+        {
+          "date": "2026-06-09T09:00:00",
+          "note": "Hydrologie lecture 3 en 5 afgerond. Nu bezig met WBK lectures 11+12.",
+          "progress": 50
         }
       ],
       "created_at": "2026-05-22T17:34:19.555990",
