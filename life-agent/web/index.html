@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Life OS</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23000'/><path d='M18 4 8 18h7l-2 10 10-14h-7z' fill='%23a78bfa'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<div class="ambient" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 14h6.5L9 22l11-13h-7z"/></svg></span>
+    <span class="brand-name">LIFE<span>OS</span></span>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-view="vandaag" role="tab">Vandaag</button>
+    <button class="tab" data-view="board" role="tab">Board</button>
+    <button class="tab" data-view="journal" role="tab">Journal</button>
+    <span class="tab-glider" aria-hidden="true"></span>
+  </nav>
+  <div class="top-actions">
+    <span class="clock mono" id="clock">--:--</span>
+    <button class="icon-btn" id="refresh" title="Vernieuwen (R)"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+    <button class="ask-btn" id="open-chat"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg><span>Vraag AI</span><kbd>K</kbd></button>
+  </div>
+</header>
+
+<main>
+  <!-- ═════════════ VANDAAG ═════════════ -->
+  <section class="view active" id="view-vandaag">
+    <div class="hero">
+      <div>
+        <div class="eyebrow" id="hero-date"></div>
+        <h1 id="hero-greeting">Hallo, Niels.</h1>
+        <p class="hero-sub" id="hero-sub"></p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <article class="card span-4" id="card-recovery">
+        <header><h2>Herstel</h2><span class="tag" id="rec-source">Whoop</span></header>
+        <div class="card-body" id="recovery"></div>
+      </article>
+
+      <article class="card span-4" id="card-agenda">
+        <header><h2>Dag</h2><span class="tag mono" id="agenda-count"></span></header>
+        <div class="card-body" id="agenda"></div>
+      </article>
+
+      <article class="card span-4 card-commit" id="card-commit">
+        <header><h2>Commitment</h2><span class="tag" id="commit-state"></span></header>
+        <div class="card-body" id="commitment"></div>
+      </article>
+
+      <article class="card span-5" id="card-goals">
+        <header><h2>Doelen</h2><span class="tag mono" id="goals-count"></span></header>
+        <div class="card-body" id="goals"></div>
+      </article>
+
+      <article class="card span-4" id="card-todos">
+        <header><h2>Todo's</h2><span class="tag mono" id="todos-count"></span></header>
+        <div class="card-body" id="todos"></div>
+      </article>
+
+      <article class="card span-3" id="card-portfolio">
+        <header><h2>Vermogen</h2><span class="tag" id="pf-updated"></span></header>
+        <div class="card-body" id="portfolio"></div>
+      </article>
+
+      <article class="card span-4" id="card-food">
+        <header><h2>Voeding</h2><span class="tag mono" id="food-goal"></span></header>
+        <div class="card-body" id="food"></div>
+      </article>
+
+      <article class="card span-4" id="card-journal-mini">
+        <header><h2>Journal</h2><span class="tag" id="jm-tag"></span></header>
+        <div class="card-body" id="journal-mini"></div>
+      </article>
+
+      <article class="card span-4 card-board-mini">
+        <header><h2>Board</h2><span class="tag">6 adviseurs</span></header>
+        <div class="card-body">
+          <p class="muted small">Leg een beslissing voor aan je board — planning, sport, geld, kansen, criticus en motivatie.</p>
+          <form class="inline-form" id="board-mini-form">
+            <input id="board-mini-input" placeholder="Waar twijfel je over?" autocomplete="off">
+            <button class="btn primary" type="submit">Start</button>
+          </form>
+          <div class="seats-mini" id="seats-mini"></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ═════════════ BOARD ═════════════ -->
+  <section class="view" id="view-board">
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Board meeting</div>
+        <h1>Zes perspectieven. Eén plan.</h1>
+        <p class="hero-sub">Elk boardlid ziet je doelen en wat de anderen al zeiden. De voorzitter maakt er een actieplan van.</p>
+      </div>
+    </div>
+
+    <div class="card board-ask">
+      <form id="board-form">
+        <textarea id="board-question" rows="2" placeholder="Bijv. Moet ik deze week extra trainen of focussen op mijn tentamens?"></textarea>
+        <div class="board-ask-row">
+          <div class="chips" id="board-agent-chips"></div>
+          <button class="btn primary lg" type="submit" id="board-submit">
+            <span>Start meeting</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="seats" id="seats"></div>
+
+    <article class="card consensus" id="consensus" hidden>
+      <header><h2>Consensus van de voorzitter</h2><span class="tag">Actieplan</span></header>
+      <div class="card-body md" id="consensus-text"></div>
+    </article>
+
+    <div class="history" id="board-history"></div>
+  </section>
+
+  <!-- ═════════════ JOURNAL ═════════════ -->
+  <section class="view" id="view-journal">
+    <div class="hero">
+      <div>
+        <div class="eyebrow" id="journal-date"></div>
+        <h1>Hoe was je dag?</h1>
+        <p class="hero-sub">Schrijf vrij — geen filters, geen mooie taal. De AI haalt mood, energie, wins en blockers eruit.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="span-7 stack">
+        <article class="card editor">
+          <div class="followup" id="followup" hidden></div>
+          <textarea id="journal-text" rows="9" placeholder="Vandaag…"></textarea>
+          <div class="editor-row">
+            <span class="muted small mono" id="journal-count">0 woorden</span>
+            <div class="row-gap">
+              <button class="btn" id="journal-ask" type="button">Verdiepingsvraag</button>
+              <button class="btn primary" id="journal-save" type="button">Opslaan &amp; analyseren</button>
+            </div>
+          </div>
+        </article>
+        <article class="card" id="journal-analysis" hidden>
+          <header><h2>Analyse van vandaag</h2><span class="tag" id="ja-tag"></span></header>
+          <div class="card-body" id="journal-analysis-body"></div>
+        </article>
+      </div>
+
+      <div class="span-5 stack">
+        <article class="card">
+          <header><h2>Mood · 30 dagen</h2><span class="tag mono" id="mood-count"></span></header>
+          <div class="card-body">
+            <div class="mood-grid" id="mood-grid"></div>
+            <div class="legend">
+              <span><i class="m-goed"></i>goed</span><span><i class="m-matig"></i>matig</span>
+              <span><i class="m-slecht"></i>slecht</span><span><i class="m-none"></i>geen entry</span>
+            </div>
+          </div>
+        </article>
+        <article class="card">
+          <header><h2>Patronen</h2>
+            <button class="btn sm" id="patterns-btn" type="button">Analyseer 14 dagen</button></header>
+          <div class="card-body md" id="patterns"><p class="muted small">Minimaal 3 entries nodig voor patroonherkenning.</p></div>
+        </article>
+        <article class="card">
+          <header><h2>Eerdere entries</h2></header>
+          <div class="card-body" id="journal-list"></div>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ═════════════ CHAT DRAWER ═════════════ -->
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <header class="drawer-head">
+    <div>
+      <div class="drawer-title"><span class="live-dot"></span>AI assistent</div>
+      <div class="muted small">Ziet je herstel, agenda, doelen, todo's en meer</div>
+    </div>
+    <div class="row-gap">
+      <button class="icon-btn" id="chat-clear" title="Gesprek wissen"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+      <button class="icon-btn" id="close-chat" title="Sluiten (Esc)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+  </header>
+  <div class="messages" id="messages"></div>
+  <div class="suggestions" id="suggestions"></div>
+  <form class="composer" id="composer">
+    <textarea id="chat-input" rows="1" placeholder="Vraag iets…"></textarea>
+    <button class="send" type="submit" title="Versturen"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </form>
+</aside>
+
+<div class="toasts" id="toasts"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

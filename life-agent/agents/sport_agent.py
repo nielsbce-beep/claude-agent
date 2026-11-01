@@ -27,18 +27,24 @@ Vandaag is: {today}"""
 
         # Supplement with live data if available
         try:
-            recovery = whoop_api.get_latest_recovery()
-            score = recovery.get("score", {}).get("recovery_score")
-            hrv   = recovery.get("score", {}).get("hrv_rmssd_milli")
-            slaap = recovery.get("score", {}).get("sleep_performance_percentage")
+            recovery = whoop_api.get_latest_recovery().get("score", {})
+            score = recovery.get("recovery_score")
+            hrv   = recovery.get("hrv_rmssd_milli")
+            rhr   = recovery.get("resting_heart_rate")
             if score:
-                whoop_context += f"\nLive vandaag: recovery {score:.0f}%, HRV {hrv:.0f}ms, slaap {slaap:.0f}%"
+                whoop_context += f"\nLive vandaag: recovery {score:.0f}%"
+                if hrv:
+                    whoop_context += f", HRV {hrv:.0f}ms"
+                if rhr:
+                    whoop_context += f", rusthartslag {rhr:.0f}bpm"
+            # Slaapscore staat in het sleep-object, niet in recovery (Whoop v2)
+            slaap = whoop_api.get_latest_sleep().get("score", {})
+            if slaap.get("sleep_performance_percentage"):
+                whoop_context += f", slaapperformance {slaap['sleep_performance_percentage']:.0f}%"
         except Exception:
             pass
 
-        import anthropic
-        client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
-        from agents.base_agent import MODEL
+        from agents.base_agent import client, MODEL
 
         prev = ""
         if board_context:

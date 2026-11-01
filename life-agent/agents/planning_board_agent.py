@@ -24,9 +24,7 @@ Vandaag is: {today}"""
         except Exception:
             agenda_context = ""
 
-        import anthropic
-        client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
-        from agents.base_agent import MODEL
+        from agents.base_agent import client, MODEL
 
         prev = ""
         if board_context:

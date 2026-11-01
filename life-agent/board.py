@@ -26,6 +26,31 @@ BOARD = [
 
 DIVIDER = "=" * 55
 
+CHAIRMAN_SYSTEM = """Je bent de voorzitter van een persoonlijk life-board.
+Je taak: synthetiseer de adviezen van alle board-leden tot één concreet, gebalanceerd actieplan.
+Spreek in het Nederlands. Wees kort (max 5 zinnen). Geef 2-3 concrete actiepunten.
+Benoem waar het board het eens is én waar spanning zit."""
+
+
+def nieuw_board() -> list:
+    """Verse agent-instanties (hun systeemprompt bevat de datum van vandaag)."""
+    return [type(a)() for a in BOARD]
+
+
+def consensus(question: str, responses: list[tuple[str, str]]) -> str:
+    from agents.base_agent import client
+    board_summary = "\n".join(f"[{name}]: {resp}" for name, resp in responses)
+    resp = client.messages.create(
+        model=MODEL,
+        max_tokens=512,
+        system=CHAIRMAN_SYSTEM,
+        messages=[{
+            "role": "user",
+            "content": f"Vraag: {question}\n\nBoard-adviezen:\n{board_summary}\n\nGeef het consensus-advies:"
+        }],
+    )
+    return resp.content[0].text
+
 
 def board_meeting(question: str):
     print(f"\n{DIVIDER}")
@@ -45,21 +70,7 @@ def board_meeting(question: str):
     print("CONSENSUS")
     print(DIVIDER)
 
-    board_summary = "\n".join(f"[{name}]: {resp}" for name, resp in responses)
-    client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
-    consensus = client.messages.create(
-        model=MODEL,
-        max_tokens=512,
-        system="""Je bent de voorzitter van een persoonlijk life-board.
-Je taak: synthetiseer de adviezen van alle board-leden tot één concreet, gebalanceerd actieplan.
-Spreek in het Nederlands. Wees kort (max 5 zinnen). Geef 2-3 concrete actiepunten.
-Benoem waar het board het eens is én waar spanning zit.""",
-        messages=[{
-            "role": "user",
-            "content": f"Vraag: {question}\n\nBoard-adviezen:\n{board_summary}\n\nGeef het consensus-advies:"
-        }],
-    )
-    print(consensus.content[0].text)
+    print(consensus(question, responses))
     print(f"\n{DIVIDER}\n")
 
 

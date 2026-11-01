@@ -1,7 +1,12 @@
 import anthropic
 from datetime import date
+from pathlib import Path
 
-client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
+from dotenv import dotenv_values
+
+ENV_FILE = Path(__file__).parent.parent / ".env"   # life-agent/.env
+# api_key=None valt terug op de ANTHROPIC_API_KEY omgevingsvariabele
+client = anthropic.Anthropic(api_key=dotenv_values(ENV_FILE).get("ANTHROPIC_API_KEY"))
 MODEL = "claude-sonnet-4-6"
 
 
