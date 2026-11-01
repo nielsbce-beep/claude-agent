@@ -31,8 +31,14 @@ async function api(path, opts = {}) {
     ...opts,
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   });
+  checkAuth(res);
   if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
   return res.json();
+}
+
+/* Sessie verlopen of uitgelogd → naar het inlogscherm */
+function checkAuth(res) {
+  if (res.status === 401) { location.href = "/login"; throw new Error("Niet ingelogd"); }
 }
 
 function toast(msg, err = false) {
@@ -376,6 +382,10 @@ async function reload(force = false) {
   } finally { btn.classList.remove("spin"); }
 }
 $("#refresh").addEventListener("click", () => reload(true));
+$("#logout").addEventListener("click", async () => {
+  await fetch("/api/logout", { method: "POST" });
+  location.href = "/login";
+});
 
 function skeletons() {
   ["#recovery", "#agenda", "#commitment", "#goals", "#todos", "#portfolio", "#food", "#journal-mini"].forEach((s) => {
@@ -441,6 +451,7 @@ async function runBoard(question) {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question, agent: boardPick }),
     });
+    checkAuth(res);
     if (!res.ok) throw new Error(await res.text());
     const reader = res.body.getReader(), dec = new TextDecoder();
     let buf = "";
@@ -617,6 +628,7 @@ async function sendChat(content, label) {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages: chat.map(({ role, content }) => ({ role, content })) }),
     });
+    checkAuth(res);
     if (!res.ok) throw new Error(await res.text());
     const reader = res.body.getReader(), dec = new TextDecoder();
     for (;;) {

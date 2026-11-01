@@ -1,23 +1,33 @@
 """
 Life OS — lokale webserver voor het dashboard.
-Start met:  python server.py      → opent http://localhost:8765
+
+  python server.py               → start en opent http://localhost:8765
+  python server.py wachtwoord    → stel het inlogwachtwoord in (of wijzig het)
+
+Op afstand: `tailscale serve --bg 8765` maakt hem bereikbaar op je eigen
+tailnet (https://<pc>.<tailnet>.ts.net). De server zelf luistert alleen lokaal.
 """
 
+import hashlib
+import hmac
 import json
+import os
+import secrets
 import sys
 import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import anthropic
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
 
 BASE = Path(__file__).parent
-load_dotenv(BASE / ".env", override=True)
+ENV_FILE = BASE / ".env"
+load_dotenv(ENV_FILE, override=True)
 sys.path.insert(0, str(BASE))
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -30,10 +40,108 @@ CHAT_MODEL = "claude-opus-5-5"
 KALENDER = "Niels AI agenda"
 WEB = BASE / "web"
 
-app = FastAPI(title="Life OS")
+app = FastAPI(title="Life OS", docs_url=None, redoc_url=None, openapi_url=None)
 app.mount("/static", StaticFiles(directory=WEB), name="static")
 
 ai = anthropic.Anthropic()
+
+
+# ── Authenticatie ──────────────────────────────────────────────────────────────
+# Wachtwoord als PBKDF2-hash in .env; sessie = HMAC-ondertekende cookie (90 dagen).
+
+COOKIE = "lifeos_session"
+SESSIE_DAGEN = 90
+OPENBAAR = {"/login", "/api/login", "/manifest.webmanifest", "/static/login.css",
+            "/static/icon.svg", "/static/icon-192.png", "/static/icon-512.png", "/static/apple-touch-icon.png"}
+
+
+def hash_wachtwoord(wachtwoord: str, salt: str | None = None) -> str:
+    salt = salt or secrets.token_hex(16)
+    h = hashlib.pbkdf2_hmac("sha256", wachtwoord.encode(), bytes.fromhex(salt), 300_000).hex()
+    return f"{salt}${h}"
+
+
+def wachtwoord_klopt(wachtwoord: str) -> bool:
+    opgeslagen = os.getenv("LIFEOS_PASSWORD_HASH", "")
+    if "$" not in opgeslagen:
+        return False
+    salt, _ = opgeslagen.split("$", 1)
+    return hmac.compare_digest(hash_wachtwoord(wachtwoord, salt), opgeslagen)
+
+
+def geheim() -> bytes:
+    s = os.getenv("LIFEOS_SECRET")
+    if not s:
+        s = secrets.token_hex(32)
+        set_key(str(ENV_FILE), "LIFEOS_SECRET", s)
+        os.environ["LIFEOS_SECRET"] = s
+    return s.encode()
+
+
+def maak_sessie() -> str:
+    verloopt = str(int(time.time()) + SESSIE_DAGEN * 86400)
+    return f"{verloopt}.{hmac.new(geheim(), verloopt.encode(), 'sha256').hexdigest()}"
+
+
+def sessie_geldig(token: str | None) -> bool:
+    if not token or "." not in token:
+        return False
+    verloopt, sig = token.split(".", 1)
+    goed = hmac.new(geheim(), verloopt.encode(), "sha256").hexdigest()
+    return hmac.compare_digest(sig, goed) and verloopt.isdigit() and int(verloopt) > time.time()
+
+
+@app.middleware("http")
+async def vereis_login(request: Request, call_next):
+    pad = request.url.path
+    if pad in OPENBAAR or sessie_geldig(request.cookies.get(COOKIE)):
+        return await call_next(request)
+    if pad.startswith("/api/"):
+        return JSONResponse({"detail": "Niet ingelogd"}, status_code=401)
+    return RedirectResponse("/login")
+
+
+_mislukt: list[float] = []   # tijdstippen van mislukte pogingen (simpele brute-force rem)
+
+
+class LoginIn(BaseModel):
+    password: str = Field(max_length=200)
+
+
+@app.get("/login")
+def login_pagina():
+    return FileResponse(WEB / "login.html")
+
+
+@app.post("/api/login")
+def api_login(l: LoginIn, request: Request):
+    nu = time.time()
+    _mislukt[:] = [t for t in _mislukt if nu - t < 900]
+    if len(_mislukt) >= 10:
+        raise HTTPException(429, "Te veel pogingen — probeer het over een kwartier opnieuw.")
+    if not os.getenv("LIFEOS_PASSWORD_HASH"):
+        raise HTTPException(503, "Nog geen wachtwoord ingesteld. Draai op je pc: python server.py wachtwoord")
+    if not wachtwoord_klopt(l.password):
+        _mislukt.append(nu)
+        time.sleep(1)
+        raise HTTPException(401, "Onjuist wachtwoord")
+    https = request.headers.get("x-forwarded-proto") == "https" or request.url.scheme == "https"
+    resp = JSONResponse({"ok": True})
+    resp.set_cookie(COOKIE, maak_sessie(), max_age=SESSIE_DAGEN * 86400,
+                    httponly=True, samesite="lax", secure=https)
+    return resp
+
+
+@app.post("/api/logout")
+def api_logout():
+    resp = JSONResponse({"ok": True})
+    resp.delete_cookie(COOKIE)
+    return resp
+
+
+@app.get("/manifest.webmanifest")
+def manifest():
+    return FileResponse(WEB / "manifest.webmanifest", media_type="application/manifest+json")
 
 
 # ── Kleine TTL-cache voor trage externe bronnen (Whoop, iCloud) ────────────────
@@ -384,10 +492,29 @@ def api_chat(c: ChatIn):
     return StreamingResponse(stream(), media_type="text/plain; charset=utf-8")
 
 
+def stel_wachtwoord_in() -> None:
+    from getpass import getpass
+    pw = getpass("Nieuw Life OS-wachtwoord (min. 10 tekens): ")
+    if len(pw) < 10:
+        sys.exit("Te kort — kies minimaal 10 tekens.")
+    if getpass("Herhaal: ") != pw:
+        sys.exit("Wachtwoorden komen niet overeen.")
+    set_key(str(ENV_FILE), "LIFEOS_PASSWORD_HASH", hash_wachtwoord(pw))
+    set_key(str(ENV_FILE), "LIFEOS_SECRET", secrets.token_hex(32))   # logt alle apparaten uit
+    print("✓ Wachtwoord opgeslagen. Herstart de server als die al draait.")
+
+
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["wachtwoord"]:
+        stel_wachtwoord_in()
+        sys.exit(0)
+
     import threading
     import webbrowser
     import uvicorn
+
+    if not os.getenv("LIFEOS_PASSWORD_HASH"):
+        print("⚠️  Nog geen wachtwoord ingesteld — draai eerst: python server.py wachtwoord")
 
     poort = 8765
     if "--no-browser" not in sys.argv:

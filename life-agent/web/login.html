@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#030303">
+<title>Life OS · Inloggen</title>
+<link rel="icon" href="/static/icon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/login.css">
+</head>
+<body>
+<div class="ambient" aria-hidden="true"></div>
+<main>
+  <form id="f" class="panel" autocomplete="on">
+    <span class="mark"><svg viewBox="0 0 24 24"><path d="M13.5 2 4 14h6.5L9 22l11-13h-7z"/></svg></span>
+    <div class="eyebrow">LIFE OS</div>
+    <h1>Welkom terug, Niels.</h1>
+    <p class="sub">Log in om je dashboard te openen.</p>
+    <input type="text" name="username" value="niels" autocomplete="username" hidden>
+    <label class="field">
+      <input id="pw" type="password" name="password" placeholder="Wachtwoord" autocomplete="current-password" required autofocus>
+      <button type="submit" aria-label="Inloggen"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </label>
+    <p class="err" id="err" role="alert"></p>
+    <p class="foot">Je blijft 90 dagen ingelogd op dit apparaat.</p>
+  </form>
+</main>
+<script>
+const f = document.getElementById("f"), err = document.getElementById("err");
+f.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  err.textContent = ""; f.classList.add("busy");
+  try {
+    const r = await fetch("/api/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: document.getElementById("pw").value }),
+    });
+    if (r.ok) { location.href = "/"; return; }
+    const d = await r.json().catch(() => ({}));
+    err.textContent = d.detail || "Inloggen mislukt";
+    f.classList.remove("shake"); void f.offsetWidth; f.classList.add("shake");
+  } catch { err.textContent = "Server niet bereikbaar"; }
+  f.classList.remove("busy");
+});
+</script>
+</body>
+</html>
