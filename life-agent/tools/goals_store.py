@@ -77,6 +77,64 @@ def update_status(goal_id: str, status: str):
     _save(data)
 
 
+def get_goal(goal_id: str) -> dict | None:
+    return next((g for g in get_all() if g["id"] == goal_id), None)
+
+
+def _herbereken(goal: dict) -> None:
+    ms = goal.get("milestones", [])
+    if ms:
+        goal["progress"] = int(sum(1 for m in ms if m["done"]) / len(ms) * 100)
+
+
+def update_goal(goal_id: str, **velden) -> dict | None:
+    """Werk title/description/category/deadline/status bij (alleen meegegeven velden)."""
+    data = _load()
+    for goal in data["goals"]:
+        if goal["id"] == goal_id:
+            for k in ("title", "description", "category", "deadline", "status"):
+                if velden.get(k) is not None:
+                    goal[k] = velden[k]
+            if velden.get("status") == "completed":
+                goal["completed_at"] = datetime.now().isoformat()
+            _save(data)
+            return goal
+    return None
+
+
+def toggle_milestone(goal_id: str, index: int) -> dict | None:
+    data = _load()
+    for goal in data["goals"]:
+        if goal["id"] == goal_id and 0 <= index < len(goal["milestones"]):
+            goal["milestones"][index]["done"] = not goal["milestones"][index]["done"]
+            _herbereken(goal)
+            _save(data)
+            return goal
+    return None
+
+
+def add_milestone(goal_id: str, text: str) -> dict | None:
+    data = _load()
+    for goal in data["goals"]:
+        if goal["id"] == goal_id:
+            goal.setdefault("milestones", []).append({"text": text, "done": False})
+            _herbereken(goal)
+            _save(data)
+            return goal
+    return None
+
+
+def remove_milestone(goal_id: str, index: int) -> dict | None:
+    data = _load()
+    for goal in data["goals"]:
+        if goal["id"] == goal_id and 0 <= index < len(goal["milestones"]):
+            goal["milestones"].pop(index)
+            _herbereken(goal)
+            _save(data)
+            return goal
+    return None
+
+
 def format_goals_summary() -> str:
     goals = get_active()
     if not goals:

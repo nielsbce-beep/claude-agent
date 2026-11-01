@@ -91,9 +91,23 @@ def sessie_geldig(token: str | None) -> bool:
     return hmac.compare_digest(sig, goed) and verloopt.isdigit() and int(verloopt) > time.time()
 
 
+def wachtwoord_ingesteld() -> bool:
+    return bool(os.getenv("LIFEOS_PASSWORD_HASH"))
+
+
+def direct_lokaal(request: Request) -> bool:
+    """Rechtstreeks vanaf deze pc — niet via een proxy zoals `tailscale serve`."""
+    proxy = ("x-forwarded-for", "x-forwarded-host", "tailscale-user-login", "forwarded")
+    return (request.client is not None and request.client.host in ("127.0.0.1", "::1")
+            and not any(h in request.headers for h in proxy))
+
+
 @app.middleware("http")
 async def vereis_login(request: Request, call_next):
     pad = request.url.path
+    # Zonder ingesteld wachtwoord: alleen toegang vanaf deze pc zelf
+    if not wachtwoord_ingesteld() and direct_lokaal(request) and pad != "/login":
+        return await call_next(request)
     if pad in OPENBAAR or sessie_geldig(request.cookies.get(COOKIE)):
         return await call_next(request)
     if pad.startswith("/api/"):
@@ -109,7 +123,9 @@ class LoginIn(BaseModel):
 
 
 @app.get("/login")
-def login_pagina():
+def login_pagina(request: Request):
+    if not wachtwoord_ingesteld() and direct_lokaal(request):
+        return RedirectResponse("/")
     return FileResponse(WEB / "login.html")
 
 
@@ -236,12 +252,14 @@ def overzicht() -> dict:
         "whoop": whoop(),
         "agenda": {"today": agenda(date.today()), "tomorrow": agenda(date.today() + timedelta(days=1))},
         "goals": doelen(),
+        "goals_completed": sum(1 for g in gs.get_all() if g.get("status") == "completed"),
         "todos": ld.open_todos(),
         "commitment": ld.commitment_vandaag(),
         "streak": ld.streak(),
         "commit_history": ld.commitment_historie(14),
         "portfolio": ld.portfolio(),
         "calories": ld.calorieen(),
+        "auth": wachtwoord_ingesteld(),
         "journal": {
             "latest": journal[0] if journal else None,
             "today_written": bool(journal) and journal[0]["date"] == date.today().isoformat(),
@@ -284,6 +302,153 @@ def api_todo_toggle(todo_id: str):
     return {"ok": True}
 
 
+class TodoEdit(BaseModel):
+    title: str | None = Field(default=None, max_length=200)
+    priority: str | None = None
+    description: str | None = Field(default=None, max_length=2000)
+
+
+@app.patch("/api/todos/{todo_id}")
+def api_todo_edit(todo_id: str, t: TodoEdit):
+    ld.todo_bijwerken(todo_id, (t.title or "").strip() or None, t.priority, t.description)
+    return {"ok": True}
+
+
+@app.delete("/api/todos/{todo_id}")
+def api_todo_delete(todo_id: str):
+    ld.todo_verwijderen(todo_id)
+    return {"ok": True}
+
+
+# ── Doelen bewerken (via tools/goals_store) ────────────────────────────────────
+
+from tools import goals_store as gs
+
+CATEGORIEEN = ["studie", "sport", "financieel", "persoonlijk", "werk", "gezondheid"]
+
+
+def goal_detail(goal_id: str) -> dict:
+    g = gs.get_goal(goal_id)
+    if not g:
+        raise HTTPException(404, "Doel niet gevonden")
+    return {**g, "check_ins": g.get("check_ins", [])[-5:][::-1]}
+
+
+@app.get("/api/goals")
+def api_goals(status: str = "active"):
+    return [{"id": g["id"], "title": g["title"], "category": g.get("category"), "progress": g.get("progress", 0),
+             "deadline": g.get("deadline"), "completed_at": g.get("completed_at")}
+            for g in gs.get_all() if g.get("status") == status]
+
+
+@app.get("/api/goals/meta")
+def api_goals_meta():
+    bestaand = {g.get("category") for g in gs.get_all() if g.get("category")}
+    return {"categories": sorted(set(CATEGORIEEN) | bestaand)}
+
+
+@app.get("/api/goals/{goal_id}")
+def api_goal(goal_id: str):
+    return goal_detail(goal_id)
+
+
+class GoalIn(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    description: str = Field(default="", max_length=3000)
+    category: str = Field(default="persoonlijk", max_length=40)
+    deadline: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+    milestones: list[str] = []
+
+
+@app.post("/api/goals")
+def api_goal_add(g: GoalIn):
+    nieuw = gs.add_goal(g.title.strip(), g.description.strip(), g.category.strip().lower(), g.deadline,
+                        [m.strip() for m in g.milestones if m.strip()])
+    return goal_detail(nieuw["id"])
+
+
+class GoalEdit(BaseModel):
+    title: str | None = Field(default=None, max_length=200)
+    description: str | None = Field(default=None, max_length=3000)
+    category: str | None = Field(default=None, max_length=40)
+    deadline: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    status: str | None = Field(default=None, pattern=r"^(active|completed|archived)$")
+
+
+@app.patch("/api/goals/{goal_id}")
+def api_goal_edit(goal_id: str, g: GoalEdit):
+    if not gs.update_goal(goal_id, **g.model_dump()):
+        raise HTTPException(404, "Doel niet gevonden")
+    return goal_detail(goal_id)
+
+
+class CheckIn(BaseModel):
+    progress: int = Field(ge=0, le=100)
+    note: str = Field(default="", max_length=2000)
+
+
+@app.post("/api/goals/{goal_id}/checkin")
+def api_goal_checkin(goal_id: str, c: CheckIn):
+    goal_detail(goal_id)
+    gs.log_check_in(goal_id, c.note.strip() or "Voortgang bijgewerkt via Life OS", c.progress)
+    return goal_detail(goal_id)
+
+
+class MijlpaalIn(BaseModel):
+    text: str = Field(min_length=1, max_length=300)
+
+
+@app.post("/api/goals/{goal_id}/milestones")
+def api_ms_add(goal_id: str, m: MijlpaalIn):
+    if not gs.add_milestone(goal_id, m.text.strip()):
+        raise HTTPException(404, "Doel niet gevonden")
+    return goal_detail(goal_id)
+
+
+@app.post("/api/goals/{goal_id}/milestones/{index}/toggle")
+def api_ms_toggle(goal_id: str, index: int):
+    if not gs.toggle_milestone(goal_id, index):
+        raise HTTPException(404, "Mijlpaal niet gevonden")
+    return goal_detail(goal_id)
+
+
+@app.delete("/api/goals/{goal_id}/milestones/{index}")
+def api_ms_delete(goal_id: str, index: int):
+    if not gs.remove_milestone(goal_id, index):
+        raise HTTPException(404, "Mijlpaal niet gevonden")
+    return goal_detail(goal_id)
+
+
+# ── Portfolio bewerken ─────────────────────────────────────────────────────────
+
+@app.get("/api/portfolio/raw")
+def api_portfolio_raw():
+    return ld.portfolio_ruw()
+
+
+class Aandeel(BaseModel):
+    ticker: str = Field(default="", max_length=12)
+    naam: str = Field(default="", max_length=80)
+    waarde: float = Field(ge=0, le=10_000_000)
+    rendement_pct: float = Field(default=0, ge=-100, le=10_000)
+
+
+class PortfolioIn(BaseModel):
+    bnd: float = Field(ge=0, le=10_000_000)
+    goud: float = Field(ge=0, le=10_000_000)
+    goud_aankoop: float = Field(ge=0, le=10_000_000)
+    bitcoin: float = Field(ge=0, le=10_000_000)
+    bitcoin_aankoop: float = Field(ge=0, le=10_000_000)
+    aandelen: list[Aandeel]
+    inleg: dict[str, float]
+    doel: dict
+
+
+@app.put("/api/portfolio")
+def api_portfolio_update(p: PortfolioIn):
+    return ld.portfolio_bijwerken(p.model_dump())
+
+
 class TekstIn(BaseModel):
     text: str = Field(min_length=1, max_length=5000)
 
@@ -321,7 +486,7 @@ class DoelIn(BaseModel):
     goal: int = Field(gt=500, le=8000)
 
 
-@app.post("/api/calories/goal")
+@app.put("/api/calories/goal")
 def api_cal_goal(d: DoelIn):
     ld.caloriedoel_zetten(d.goal)
     return ld.calorieen()

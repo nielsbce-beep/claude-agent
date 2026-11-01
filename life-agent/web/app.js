@@ -117,6 +117,7 @@ function render() {
   if (s.streak) bits.push(`<b>${s.streak}</b> dagen streak 🔥`);
   $("#hero-sub").innerHTML = bits.join(" · ");
 
+  $("#logout").hidden = !s.auth;
   renderRecovery(); renderAgenda(); renderCommitment(); renderGoals();
   renderTodos(); renderPortfolio(); renderFood(); renderJournalMini();
 }
@@ -218,9 +219,10 @@ function renderCommitment() {
   }
   tag.textContent = c.achieved ? "nagekomen" : "open"; tag.className = "tag " + (c.achieved ? "good" : "");
   el.innerHTML = `
-    <p class="quote ${c.achieved ? "done" : ""}">“${esc(c.commitment)}”</p>
+    <p class="quote editable ${c.achieved ? "done" : ""}" id="commit-quote" title="Klik om te wijzigen">“${esc(c.commitment)}”</p>
     <button class="commit-btn ${c.achieved ? "done" : ""}" id="commit-toggle">
       ${ICON.check}<span>${c.achieved ? "Nagekomen — goed bezig" : "Markeer als nagekomen"}</span></button>${streak}`;
+  $("#commit-quote").addEventListener("click", () => openCommitEdit(c.commitment));
   $("#commit-toggle").addEventListener("click", async () => {
     await api("/api/commitment/toggle", { method: "POST" });
     if (!c.achieved) toast("💪 Commitment nagekomen");
@@ -245,15 +247,19 @@ function renderGoals() {
   el.innerHTML = shown.map((x) => {
     const c = urgentie(x.days_left);
     const dl = x.days_left == null ? "" : x.days_left < 0 ? "verlopen" : x.days_left === 0 ? "vandaag" : `${x.days_left}d`;
-    return `<div class="goal" style="--c:${c}">
+    return `<div class="goal" style="--c:${c}" data-id="${esc(x.id)}" title="Klik om te bewerken">
       <div class="goal-top"><span class="goal-title" title="${esc(x.title)}">${esc(x.title)}</span>
         ${dl ? `<span class="days">${dl}</span>` : ""}<span class="goal-pct">${x.progress}%</span></div>
       <div class="bar"><i style="width:0" data-w="${Math.max(2, Math.min(100, x.progress))}%"></i></div>
       ${x.next_milestone ? `<div class="goal-next"><b>Volgende:</b> ${esc(x.next_milestone)} · ${x.milestones_done}/${x.milestones_total}</div>` : ""}
     </div>`;
-  }).join("") + (g.length > 5 ? `<button class="more" id="goals-more">${goalsAll ? "Minder tonen" : `Alle ${g.length} doelen tonen →`}</button>` : "");
+  }).join("") + `<div class="links-row">
+      ${g.length > 5 ? `<button class="more" id="goals-more">${goalsAll ? "Minder tonen" : `Alle ${g.length} doelen tonen →`}</button>` : "<span></span>"}
+      ${state.goals_completed ? `<button class="more" id="goals-done">🏆 ${state.goals_completed} behaald</button>` : ""}</div>`;
   requestAnimationFrame(() => $$(".bar > i", el).forEach((b) => (b.style.width = b.dataset.w)));
   $("#goals-more")?.addEventListener("click", () => { goalsAll = !goalsAll; renderGoals(); });
+  $("#goals-done")?.addEventListener("click", openCompletedGoals);
+  $$(".goal", el).forEach((r) => r.addEventListener("click", () => openGoal(r.dataset.id)));
 }
 
 let todoPrio = "medium";
@@ -281,6 +287,10 @@ function renderTodos() {
     toast("✓ " + $(".todo-t", row).textContent);
     setTimeout(reload, 300);
   }));
+  $$(".todo-main", el).forEach((m) => m.addEventListener("click", () => {
+    const id = m.closest(".todo").dataset.id;
+    openTodo(state.todos.find((x) => x.id === id));
+  }));
   $$(".prio-pick button", el).forEach((b) => b.addEventListener("click", () => {
     todoPrio = b.dataset.p;
     $$(".prio-pick button", el).forEach((x) => x.classList.toggle("on", x === b));
@@ -302,14 +312,31 @@ function renderPortfolio() {
   const parts = Object.entries(p.parts).filter(([, v]) => v > 0);
   const tot = parts.reduce((a, [, v]) => a + v, 0) || 1;
   const onSchema = p.projection >= p.goal;
+  const hist = p.history || [];
+  const delta = hist.length > 1 ? p.total - hist[hist.length - 2].totaal : null;
   el.innerHTML = `
     <div class="big-num">${eur(p.total)}</div>
+    ${delta !== null && Math.abs(delta) >= 1 ? `<div class="small" style="margin-top:6px;color:${delta >= 0 ? "var(--good)" : "var(--bad)"}">
+      ${delta >= 0 ? "▲" : "▼"} ${eur(Math.abs(delta))} sinds ${esc(hist[hist.length - 2].datum)}</div>` : ""}
+    ${sparkline(hist.map((h) => h.totaal))}
     <div class="goal-line"><span>${pct.toFixed(1)}% van doel</span><b>${eur(p.goal)}</b></div>
     <div class="bar" style="--c:#a78bfa;height:6px"><i style="width:0" data-w="${pct}%"></i></div>
     <div class="alloc">${parts.map(([k, v]) => `<i style="width:${(v / tot) * 100}%;background:${kleuren[k]}" title="${k}"></i>`).join("")}</div>
     <div class="alloc-legend">${parts.map(([k, v]) => `<span><i style="background:${kleuren[k]}"></i>${k}<em>${Math.round((v / tot) * 100)}%</em></span>`).join("")}</div>
     <div class="proj">Met <b>${eur(p.monthly)}/mnd</b> inleg: <b style="color:${onSchema ? "var(--good)" : "var(--warn)"}">${eur(p.projection)}</b> in ${esc(p.deadline.slice(0, 4))} ${onSchema ? "— op schema" : "zonder rendement"}</div>`;
   requestAnimationFrame(() => $$(".bar > i", el).forEach((b) => (b.style.width = b.dataset.w)));
+}
+
+function sparkline(vals) {
+  if (vals.length < 2) return "";
+  const W = 260, H = 44, min = Math.min(...vals), max = Math.max(...vals), span = max - min || 1;
+  const pts = vals.map((v, i) => [(i / (vals.length - 1)) * W, H - 4 - ((v - min) / span) * (H - 8)]);
+  const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const [lx, ly] = pts[pts.length - 1];
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="Verloop vermogen">
+    <defs><linearGradient id="sparkg" x1="0" x2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+    <linearGradient id="sparka" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#818cf8" stop-opacity=".25"/><stop offset="1" stop-color="#818cf8" stop-opacity="0"/></linearGradient></defs>
+    <path class="area" d="${line} L${W},${H} L0,${H} Z"/><path class="line" d="${line}"/><circle cx="${lx}" cy="${ly}" r="3"/></svg>`;
 }
 
 function renderFood() {
@@ -369,6 +396,349 @@ function renderJournalMini() {
   }
   $("#jm-go").addEventListener("click", () => { setView("journal"); setTimeout(() => $("#journal-text").focus(), 300); });
 }
+
+/* ═══ Modals ═════════════════════════════════════════════════════════ */
+let openModals = [];
+
+function modal({ title, body, foot = "", width, onClose }) {
+  const root = document.createElement("div");
+  root.className = "modal-root";
+  root.innerHTML = `<div class="modal-scrim"></div>
+    <div class="modal" role="dialog" aria-modal="true" ${width ? `style="--mw:${width}px"` : ""}>
+      <div class="modal-head"><h3>${title}</h3><button class="icon-btn" data-close title="Sluiten (Esc)">${ICON.x}</button></div>
+      <div class="modal-body">${body}</div>
+      ${foot ? `<div class="modal-foot">${foot}</div>` : ""}
+    </div>`;
+  document.body.append(root);
+  document.body.style.overflow = "hidden";
+  const m = {
+    el: root,
+    $: (s) => root.querySelector(s),
+    $$: (s) => [...root.querySelectorAll(s)],
+    close() {
+      root.remove();
+      openModals = openModals.filter((x) => x !== m);
+      if (!openModals.length) document.body.style.overflow = "";
+      onClose?.();
+    },
+  };
+  root.querySelector(".modal-scrim").addEventListener("click", () => m.close());
+  root.querySelector("[data-close]").addEventListener("click", () => m.close());
+  openModals.push(m);
+  setTimeout(() => root.querySelector("[autofocus]")?.focus(), 60);
+  return m;
+}
+
+/* Twee keer klikken om te bevestigen (geen confirm()-popup) */
+function confirmClick(btn, label, fn) {
+  const orig = btn.innerHTML;
+  btn.addEventListener("click", () => {
+    if (btn.classList.contains("armed")) return fn();
+    btn.classList.add("armed"); btn.textContent = label;
+    setTimeout(() => { btn.classList.remove("armed"); btn.innerHTML = orig; }, 3000);
+  });
+}
+
+/* "2.815,46" / "2815,46" / "2815.46" → 2815.46 */
+const num = (v) => {
+  let s = String(v ?? "").replace(/[\s€]/g, "");
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  const n = parseFloat(s);
+  return isFinite(n) ? n : 0;
+};
+const fmtNum = (n) => (n == null ? "" : String(Math.round(n * 100) / 100).replace(".", ","));
+const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
+
+/* ── Doelen ─────────────────────────────────────────────────────────── */
+let goalCats = null;
+async function categories() {
+  if (!goalCats) goalCats = (await api("/api/goals/meta")).categories;
+  return goalCats;
+}
+function catOptions(cur) {
+  const all = cur && !goalCats.includes(cur) ? [...goalCats, cur] : goalCats;
+  return all.map((c) => `<option value="${esc(c)}" ${c === cur ? "selected" : ""}>${esc(cap(c))}</option>`).join("");
+}
+
+async function openGoal(id) {
+  const gid = encodeURIComponent(id);
+  let g;
+  try { [g] = await Promise.all([api(`/api/goals/${gid}`), categories()]); }
+  catch (e) { return toast("Doel laden mislukt", true); }
+
+  const m = modal({
+    title: "Doel bewerken", width: 680, onClose: () => reload(),
+    body: `
+      <input class="title-input" id="g-title" value="${esc(g.title)}" maxlength="200" aria-label="Titel">
+      <div class="f2">
+        <label class="f"><span>Categorie</span><select id="g-cat">${catOptions(g.category)}</select></label>
+        <label class="f"><span>Deadline</span><input type="date" id="g-deadline" value="${esc(g.deadline || "")}"></label>
+      </div>
+      <div class="progress-box">
+        <div class="progress-top"><span class="muted small">Voortgang</span><b id="g-pct"></b></div>
+        <input type="range" id="g-range" min="0" max="100" step="5" aria-label="Voortgang">
+        <div class="checkin-row">
+          <input id="g-note" placeholder="Check-in: wat heb je gedaan?" maxlength="2000" autocomplete="off">
+          <button class="btn" id="g-checkin" type="button">Check-in</button>
+        </div>
+        <div class="hint" id="g-hint"></div>
+      </div>
+      <div class="sec">
+        <div class="sec-h"><h4>Mijlpalen</h4><span id="g-ms-count"></span></div>
+        <div id="g-ms"></div>
+        <form class="ms-add" id="g-ms-form"><input id="g-ms-input" placeholder="Nieuwe mijlpaal…" maxlength="300" autocomplete="off">
+          <button class="btn" type="submit" aria-label="Toevoegen">${ICON.plus}</button></form>
+      </div>
+      <div class="sec"><label class="f"><span>Beschrijving</span><textarea id="g-desc" rows="3" maxlength="3000">${esc(g.description || "")}</textarea></label></div>
+      <div class="sec"><div class="sec-h"><h4>Laatste check-ins</h4></div><div id="g-ci"></div></div>`,
+    foot: `<button class="btn danger" id="g-archive" type="button">Archiveren</button>
+      <button class="btn good" id="g-complete" type="button">🏆 Behaald</button><span class="spacer"></span>
+      <button class="btn primary" id="g-save" type="button">Opslaan</button>`,
+  });
+
+  const draw = () => {
+    m.$("#g-pct").textContent = g.progress + "%";
+    const r = m.$("#g-range"); r.value = g.progress; r.style.setProperty("--p", g.progress + "%");
+    const done = g.milestones.filter((x) => x.done).length;
+    m.$("#g-ms-count").textContent = g.milestones.length ? `${done}/${g.milestones.length}` : "";
+    m.$("#g-hint").textContent = g.milestones.length ? "Mijlpalen afvinken zet de voortgang automatisch bij." : "";
+    m.$("#g-ms").innerHTML = g.milestones.length
+      ? g.milestones.map((x, i) => `<div class="ms ${x.done ? "done" : ""}" data-i="${i}">
+          <button class="check ${x.done ? "on" : ""}" aria-label="Afvinken">${ICON.check}</button><span>${esc(x.text)}</span>
+          <button class="x" aria-label="Verwijderen">${ICON.x}</button></div>`).join("")
+      : `<div class="empty">Nog geen mijlpalen — breek je doel op in concrete stappen.</div>`;
+    m.$$(".ms .check").forEach((b) => b.addEventListener("click", async () => {
+      g = await api(`/api/goals/${gid}/milestones/${b.closest(".ms").dataset.i}/toggle`, { method: "POST" }); draw();
+    }));
+    m.$$(".ms .x").forEach((b) => b.addEventListener("click", async () => {
+      g = await api(`/api/goals/${gid}/milestones/${b.closest(".ms").dataset.i}`, { method: "DELETE" }); draw();
+    }));
+    m.$("#g-ci").innerHTML = g.check_ins.length
+      ? g.check_ins.map((c) => `<div class="ci"><time>${esc(String(c.date).slice(0, 10))} · <b>${c.progress}%</b></time>${esc(c.note)}</div>`).join("")
+      : `<div class="empty">Nog geen check-ins.</div>`;
+  };
+  draw();
+
+  m.$("#g-range").addEventListener("input", (e) => {
+    m.$("#g-pct").textContent = e.target.value + "%";
+    e.target.style.setProperty("--p", e.target.value + "%");
+  });
+  const checkin = async () => {
+    const progress = +m.$("#g-range").value, note = m.$("#g-note").value.trim();
+    g = await api(`/api/goals/${gid}/checkin`, { method: "POST", body: { progress, note } });
+    m.$("#g-note").value = ""; draw(); toast(`Check-in opgeslagen · ${progress}%`);
+  };
+  m.$("#g-checkin").addEventListener("click", checkin);
+  m.$("#g-note").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); checkin(); } });
+  m.$("#g-ms-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const text = m.$("#g-ms-input").value.trim(); if (!text) return;
+    g = await api(`/api/goals/${gid}/milestones`, { method: "POST", body: { text } });
+    m.$("#g-ms-input").value = ""; draw(); m.$("#g-ms-input").focus();
+  });
+  m.$("#g-save").addEventListener("click", async () => {
+    const title = m.$("#g-title").value.trim();
+    if (!title) return toast("Titel mag niet leeg zijn", true);
+    const deadline = m.$("#g-deadline").value || null;
+    await api(`/api/goals/${gid}`, { method: "PATCH", body: {
+      title, description: m.$("#g-desc").value, category: m.$("#g-cat").value, deadline } });
+    toast("Doel opgeslagen"); m.close();
+  });
+  m.$("#g-complete").addEventListener("click", async () => {
+    await api(`/api/goals/${gid}`, { method: "PATCH", body: { status: "completed" } });
+    toast("🏆 Doel behaald — sterk!"); m.close();
+  });
+  confirmClick(m.$("#g-archive"), "Zeker weten?", async () => {
+    await api(`/api/goals/${gid}`, { method: "PATCH", body: { status: "archived" } });
+    toast("Doel gearchiveerd"); m.close();
+  });
+}
+
+async function openNewGoal() {
+  await categories();
+  const d = new Date(); d.setMonth(d.getMonth() + 3);
+  const m = modal({
+    title: "Nieuw doel", width: 600, onClose: () => reload(),
+    body: `
+      <input class="title-input" id="n-title" placeholder="Wat wil je bereiken?" maxlength="200" autofocus>
+      <div class="f2">
+        <label class="f"><span>Categorie</span><select id="n-cat">${catOptions("persoonlijk")}</select></label>
+        <label class="f"><span>Deadline</span><input type="date" id="n-deadline" value="${d.toLocaleDateString("sv-SE")}"></label>
+      </div>
+      <label class="f"><span>Waarom / beschrijving</span><textarea id="n-desc" rows="3" maxlength="3000" placeholder="Waarom is dit belangrijk? Hoe meet je het?"></textarea></label>
+      <label class="f"><span>Mijlpalen — één per regel</span><textarea id="n-ms" rows="4" placeholder="Eerste stap…&#10;Tweede stap…"></textarea>
+        <div class="hint">Voortgang wordt automatisch berekend uit afgevinkte mijlpalen.</div></label>`,
+    foot: `<span class="spacer"></span><button class="btn primary" id="n-save" type="button">Doel aanmaken</button>`,
+  });
+  m.$("#n-save").addEventListener("click", async () => {
+    const title = m.$("#n-title").value.trim(), deadline = m.$("#n-deadline").value;
+    if (!title) return toast("Geef je doel een titel", true);
+    if (!deadline) return toast("Kies een deadline", true);
+    await api("/api/goals", { method: "POST", body: {
+      title, deadline, category: m.$("#n-cat").value, description: m.$("#n-desc").value,
+      milestones: m.$("#n-ms").value.split("\n").map((s) => s.trim()).filter(Boolean) } });
+    toast("Doel aangemaakt 🎯"); m.close();
+  });
+}
+
+async function openCompletedGoals() {
+  const [done, archived] = await Promise.all([api("/api/goals?status=completed"), api("/api/goals?status=archived")]);
+  const row = (g, label) => `<div class="done-goal" data-id="${esc(g.id)}">
+      <div class="t">${esc(g.title)}<small>${esc(cap(g.category || ""))} · ${esc((g.completed_at || g.deadline || "").slice(0, 10))}</small></div>
+      <button class="btn sm" data-reopen>${label}</button></div>`;
+  const m = modal({
+    title: "Behaalde & gearchiveerde doelen", width: 560, onClose: () => reload(),
+    body: `<div class="sec"><div class="sec-h"><h4>🏆 Behaald</h4><span>${done.length}</span></div>
+        ${done.length ? done.map((g) => row(g, "Heropenen")).join("") : '<div class="empty">Nog niets — komt eraan.</div>'}</div>
+      ${archived.length ? `<div class="sec"><div class="sec-h"><h4>Gearchiveerd</h4><span>${archived.length}</span></div>
+        ${archived.map((g) => row(g, "Terugzetten")).join("")}</div>` : ""}`,
+  });
+  m.$$("[data-reopen]").forEach((b) => b.addEventListener("click", async () => {
+    const r = b.closest(".done-goal");
+    await api(`/api/goals/${encodeURIComponent(r.dataset.id)}`, { method: "PATCH", body: { status: "active" } });
+    r.remove(); toast("Doel weer actief");
+  }));
+}
+
+/* ── Portfolio ──────────────────────────────────────────────────────── */
+const INLEG_LABEL = { bnd_maand: "BND per maand", goud_maand: "Goud per maand", aandelen_week: "Aandelen per week", bitcoin_week: "Bitcoin per week" };
+
+async function openPortfolio() {
+  let p;
+  try { p = await api("/api/portfolio/raw"); } catch { return toast("Portfolio laden mislukt", true); }
+  const h = p.holdings || {};
+  const money = (id, v, label) => `<label class="f"><span>${label}</span><div class="euro">
+      <input id="${id}" inputmode="decimal" value="${fmtNum(v)}" autocomplete="off"></div></label>`;
+  const stockRow = (s = {}) => `<div class="stock">
+      <input data-k="ticker" value="${esc(s.ticker || "")}" placeholder="TICK" maxlength="12">
+      <input data-k="naam" value="${esc(s.naam || "")}" placeholder="Naam" maxlength="80">
+      <div class="euro"><input data-k="waarde" inputmode="decimal" value="${fmtNum(s.waarde)}" placeholder="0"></div>
+      <input data-k="rendement_pct" inputmode="decimal" value="${fmtNum(s.rendement_pct)}" placeholder="% rend.">
+      <button class="x" type="button" aria-label="Verwijderen">${ICON.x}</button></div>`;
+  const inleg = { bnd_maand: 0, goud_maand: 0, aandelen_week: 0, bitcoin_week: 0, ...(p.inleg || {}) };
+
+  const m = modal({
+    title: "Portfolio bijwerken", width: 720, onClose: () => reload(),
+    body: `
+      <div class="sec"><div class="sec-h"><h4>Waardes</h4><span>laatst: ${esc(p.last_updated || "—")}</span></div>
+        ${money("p-bnd", h.bnd?.waarde, "Brand New Day — totaal")}
+        <div class="f2">${money("p-goud", h.goud?.waarde, "Goud — huidige waarde")}${money("p-goud-a", h.goud?.aankoopwaarde, "Goud — aankoopwaarde")}</div>
+        <div class="f2">${money("p-btc", h.bitcoin?.waarde, "Bitcoin — huidige waarde")}${money("p-btc-a", h.bitcoin?.aankoopwaarde, "Bitcoin — aankoopwaarde")}</div>
+      </div>
+      <div class="sec"><div class="sec-h"><h4>Losse aandelen</h4><span id="p-st-tot"></span></div>
+        <div class="stock-head"><span>Ticker</span><span>Naam</span><span>Waarde</span><span>Rendement</span><span></span></div>
+        <div id="p-stocks">${(h.aandelen?.posities || []).map(stockRow).join("")}</div>
+        <button class="btn sm" type="button" id="p-add-stock" style="margin-top:6px">${ICON.plus} Aandeel toevoegen</button>
+      </div>
+      <div class="sec"><div class="sec-h"><h4>Inleg</h4><span id="p-maand"></span></div>
+        <div class="f2">${Object.keys(inleg).map((k) => money("p-in-" + k, inleg[k], INLEG_LABEL[k] || k)).join("")}</div>
+      </div>
+      <div class="sec"><div class="sec-h"><h4>Doel</h4></div>
+        <div class="f2">${money("p-doel", p.doel?.bedrag ?? 25000, "Doelbedrag")}
+          <label class="f"><span>Deadline</span><input type="date" id="p-deadline" value="${esc(p.doel?.deadline || "2029-12-31")}"></label></div>
+      </div>`,
+    foot: `<span class="total-preview">Nieuw totaal<b id="p-total"></b></span><span class="spacer"></span>
+      <button class="btn primary" id="p-save" type="button">Opslaan</button>`,
+  });
+
+  const stocks = () => m.$$("#p-stocks .stock").map((r) => {
+    const o = {}; r.querySelectorAll("[data-k]").forEach((i) => (o[i.dataset.k] = i.value)); return o;
+  }).filter((s) => s.ticker.trim() || s.naam.trim());
+  const update = () => {
+    const st = stocks().reduce((a, s) => a + num(s.waarde), 0);
+    const tot = num(m.$("#p-bnd").value) + num(m.$("#p-goud").value) + num(m.$("#p-btc").value) + st;
+    m.$("#p-total").textContent = eur(tot);
+    m.$("#p-st-tot").textContent = eur(st);
+    const maand = Object.keys(inleg).reduce((a, k) => a + num(m.$("#p-in-" + k).value) * (k.endsWith("_week") ? 52 / 12 : 1), 0);
+    m.$("#p-maand").textContent = `≈ ${eur(maand)}/maand`;
+  };
+  const bindRow = (r) => r.querySelector(".x").addEventListener("click", () => { r.remove(); update(); });
+  m.$$("#p-stocks .stock").forEach(bindRow);
+  m.$("#p-add-stock").addEventListener("click", () => {
+    m.$("#p-stocks").insertAdjacentHTML("beforeend", stockRow());
+    const r = m.$("#p-stocks").lastElementChild; bindRow(r); r.querySelector("input").focus();
+  });
+  m.el.addEventListener("input", update);
+  update();
+
+  m.$("#p-save").addEventListener("click", async () => {
+    const b = m.$("#p-save"); b.disabled = true;
+    try {
+      state.portfolio = await api("/api/portfolio", { method: "PUT", body: {
+        bnd: num(m.$("#p-bnd").value),
+        goud: num(m.$("#p-goud").value), goud_aankoop: num(m.$("#p-goud-a").value),
+        bitcoin: num(m.$("#p-btc").value), bitcoin_aankoop: num(m.$("#p-btc-a").value),
+        aandelen: stocks().map((s) => ({ ticker: s.ticker, naam: s.naam, waarde: num(s.waarde), rendement_pct: num(s.rendement_pct) })),
+        inleg: Object.fromEntries(Object.keys(inleg).map((k) => [k, num(m.$("#p-in-" + k).value)])),
+        doel: { bedrag: num(m.$("#p-doel").value), deadline: m.$("#p-deadline").value },
+      } });
+      toast("Portfolio bijgewerkt 📈"); m.close();
+    } catch (e) { toast("Opslaan mislukt: " + e.message, true); b.disabled = false; }
+  });
+}
+
+/* ── Todo, caloriedoel, commitment ──────────────────────────────────── */
+function openTodo(t) {
+  if (!t) return;
+  let prio = t.priority || "medium";
+  const chips = () => ["high", "medium", "low"].map((p) =>
+    `<button type="button" class="chip ${p === prio ? "on" : ""}" data-p="${p}"><i class="prio ${p}" style="margin:0"></i>${{ high: "Hoog", medium: "Middel", low: "Laag" }[p]}</button>`).join("");
+  const m = modal({
+    title: "Todo bewerken", width: 520, onClose: () => reload(),
+    body: `<input class="title-input" id="t-title" value="${esc(t.title)}" maxlength="200">
+      <label class="f"><span>Prioriteit</span><div class="prio-choice" id="t-prio">${chips()}</div></label>
+      <label class="f"><span>Notitie</span><textarea id="t-desc" rows="4" maxlength="2000">${esc(t.description || "")}</textarea></label>
+      <div class="hint">Aangemaakt op ${esc(t.created_at || "?")}</div>`,
+    foot: `<button class="btn danger" id="t-del" type="button">Verwijderen</button><span class="spacer"></span>
+      <button class="btn primary" id="t-save" type="button">Opslaan</button>`,
+  });
+  const bindChips = () => m.$$("#t-prio .chip").forEach((c) => c.addEventListener("click", () => {
+    prio = c.dataset.p; m.$("#t-prio").innerHTML = chips(); bindChips();
+  }));
+  bindChips();
+  const id = encodeURIComponent(t.id);
+  m.$("#t-save").addEventListener("click", async () => {
+    await api(`/api/todos/${id}`, { method: "PATCH", body: { title: m.$("#t-title").value, priority: prio, description: m.$("#t-desc").value } });
+    toast("Todo opgeslagen"); m.close();
+  });
+  confirmClick(m.$("#t-del"), "Echt verwijderen?", async () => {
+    await api(`/api/todos/${id}`, { method: "DELETE" }); toast("Todo verwijderd"); m.close();
+  });
+}
+
+function openCalGoal() {
+  const m = modal({
+    title: "Caloriedoel", width: 380,
+    body: `<label class="f"><span>Doel voor vandaag (kcal)</span><input id="c-goal" type="number" min="600" max="8000" step="50" value="${state.calories.goal}" autofocus></label>
+      <div class="hint">Geldt vanaf vandaag en blijft staan voor de volgende dagen.</div>`,
+    foot: `<span class="spacer"></span><button class="btn primary" id="c-save" type="button">Opslaan</button>`,
+  });
+  const save = async () => {
+    const goal = parseInt(m.$("#c-goal").value, 10);
+    if (!(goal > 500 && goal <= 8000)) return toast("Kies een doel tussen 500 en 8000", true);
+    state.calories = await api("/api/calories/goal", { method: "PUT", body: { goal } });
+    renderFood(); m.close();
+  };
+  m.$("#c-save").addEventListener("click", save);
+  m.$("#c-goal").addEventListener("keydown", (e) => { if (e.key === "Enter") save(); });
+}
+
+function openCommitEdit(text) {
+  const m = modal({
+    title: "Commitment wijzigen", width: 520, onClose: () => reload(),
+    body: `<label class="f"><span>Vandaag ga ik…</span><textarea id="cm-text" rows="3" maxlength="500" autofocus>${esc(text)}</textarea></label>
+      <div class="hint">Wijzigen zet de status terug op "open".</div>`,
+    foot: `<span class="spacer"></span><button class="btn primary" id="cm-save" type="button">Opslaan</button>`,
+  });
+  m.$("#cm-save").addEventListener("click", async () => {
+    const t = m.$("#cm-text").value.trim(); if (!t) return;
+    await api("/api/commitment", { method: "POST", body: { text: t } }); toast("Commitment bijgewerkt"); m.close();
+  });
+}
+
+$("#goal-new").addEventListener("click", openNewGoal);
+$("#pf-edit").addEventListener("click", openPortfolio);
+$("#food-goal").addEventListener("click", openCalGoal);
 
 /* ═══ Data laden ═════════════════════════════════════════════════════ */
 async function reload(force = false) {
@@ -661,6 +1031,10 @@ $("#composer").addEventListener("submit", (e) => {
 
 /* ── sneltoetsen ───────────────────────────────────────────────────── */
 document.addEventListener("keydown", (e) => {
+  if (openModals.length) {   // eerst het bovenste venster afhandelen
+    if (e.key === "Escape") { e.preventDefault(); openModals[openModals.length - 1].close(); }
+    return;
+  }
   const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName);
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("#drawer").classList.contains("open") ? closeChat() : openChat(); }
   else if (e.key === "Escape" && $("#drawer").classList.contains("open")) closeChat();
@@ -682,5 +1056,16 @@ document.addEventListener("keydown", (e) => {
   try { boardAgents = await api("/api/board/agents"); } catch { boardAgents = []; }
   renderBoardChips(); renderSeats(); renderBoardHistory();
   await reload();
-  setInterval(() => { if (!document.hidden) reload(); }, 5 * 60_000);
+  setInterval(() => { if (!document.hidden && !openModals.length) reload(); }, 5 * 60_000);
+
+  // Snelkoppelingen: /?open=portfolio | nieuw-doel | doel:<id> | chat
+  const open = new URLSearchParams(location.search).get("open");
+  if (open) {
+    history.replaceState(null, "", location.pathname + location.hash);
+    if (open === "portfolio") openPortfolio();
+    else if (open === "nieuw-doel") openNewGoal();
+    else if (open === "chat") openChat();
+    else if (open.startsWith("doel:")) openGoal(open.slice(5));
+    else if (open === "eerste-doel" && state?.goals[0]) openGoal(state.goals[0].id);
+  }
 })();

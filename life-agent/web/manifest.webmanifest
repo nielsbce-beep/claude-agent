@@ -8,6 +8,12 @@
   "background_color": "#030303",
   "theme_color": "#030303",
   "lang": "nl",
+  "shortcuts": [
+    { "name": "AI assistent", "url": "/?open=chat" },
+    { "name": "Portfolio bijwerken", "url": "/?open=portfolio" },
+    { "name": "Nieuw doel", "url": "/?open=nieuw-doel" },
+    { "name": "Journal", "url": "/#journal" }
+  ],
   "icons": [
     { "src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "/static/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },

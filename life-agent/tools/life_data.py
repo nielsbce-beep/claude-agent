@@ -117,15 +117,22 @@ def commitment_historie(dagen: int = 14) -> list[dict]:
 
 # ── Calorieën ──────────────────────────────────────────────────────────────────
 
+def _laatste_doel(data: dict) -> int:
+    """Het meest recent ingestelde caloriedoel loopt door naar nieuwe dagen."""
+    dagen = sorted(k for k in data if isinstance(data[k], dict) and "doel" in data[k])
+    return data[dagen[-1]]["doel"] if dagen else STANDAARD_KCAL
+
+
 def calorieen() -> dict:
-    dag = lees(CALORIES_FILE, {}).get(date.today().isoformat(), {"doel": STANDAARD_KCAL, "innames": []})
+    data = lees(CALORIES_FILE, {})
+    dag = data.get(date.today().isoformat(), {"doel": _laatste_doel(data), "innames": []})
     return {"goal": dag.get("doel", STANDAARD_KCAL), "items": dag.get("innames", []),
             "total": sum(i["kcal"] for i in dag.get("innames", []))}
 
 
 def calorie_toevoegen(item: str, kcal: int) -> None:
     data = lees(CALORIES_FILE, {})
-    dag = data.setdefault(date.today().isoformat(), {"doel": STANDAARD_KCAL, "innames": []})
+    dag = data.setdefault(date.today().isoformat(), {"doel": _laatste_doel(data), "innames": []})
     dag["innames"].append({"item": item, "kcal": kcal, "time": datetime.now().strftime("%H:%M")})
     schrijf(CALORIES_FILE, data)
 
@@ -159,6 +166,9 @@ def portfolio() -> dict:
     per_maand = inleg.get("bnd_maand", 0) + inleg.get("goud_maand", 0) + \
         (inleg.get("aandelen_week", 0) + inleg.get("bitcoin_week", 0)) * 52 / 12
     totaal = sum(onderdelen.values())
+    historie = list(p.get("historie", []))
+    if not historie or historie[-1]["datum"] != p.get("last_updated"):
+        historie.append({"datum": p.get("last_updated", date.today().isoformat()), "totaal": round(totaal, 2)})
     doel = p.get("doel", {}).get("bedrag", 25000)
     deadline = p.get("doel", {}).get("deadline", "")
     # Simpele lineaire projectie (zonder rendement) naar de deadline
@@ -176,7 +186,100 @@ def portfolio() -> dict:
         "updated": p.get("last_updated", "?"),
         "top": sorted(h.get("aandelen", {}).get("posities", []),
                       key=lambda x: x.get("rendement_pct", 0), reverse=True)[:3],
+        "history": historie[-24:],
     }
+
+
+def portfolio_ruw() -> dict:
+    return lees(PORTFOLIO_FILE, {})
+
+
+def _rendement(waarde: float, aankoop: float) -> float:
+    return round((waarde - aankoop) / aankoop * 100, 2) if aankoop else 0.0
+
+
+def portfolio_bijwerken(nieuw: dict) -> dict:
+    """
+    Werk portfolio.json bij vanuit het dashboard-formulier.
+    nieuw = {bnd, goud, goud_aankoop, bitcoin, bitcoin_aankoop,
+             aandelen: [{ticker, naam, waarde, rendement_pct}], inleg: {...}, doel: {bedrag, deadline}}
+    """
+    p = lees(PORTFOLIO_FILE, {})
+    h = p.setdefault("holdings", {})
+    vandaag = date.today().isoformat()
+    updates = p.setdefault("updates", [])
+
+    def log(component, oud, nieuw_w):
+        if round(oud or 0, 2) != round(nieuw_w or 0, 2):
+            updates.append({"datum": vandaag, "component": component, "oud": oud, "nieuw": nieuw_w})
+
+    # Brand New Day: totaal bijwerken, posities proportioneel meeschalen (weging blijft gelijk)
+    bnd = h.setdefault("bnd", {"naam": "Brand New Day", "waarde": 0, "posities": []})
+    if "bnd" in nieuw:
+        log("bnd", bnd.get("waarde"), nieuw["bnd"])
+        oud = bnd.get("waarde") or 0
+        if oud:
+            factor = nieuw["bnd"] / oud
+            for pos in bnd.get("posities", []):
+                pos["waarde"] = round(pos["waarde"] * factor, 2)
+        bnd["waarde"] = round(nieuw["bnd"], 2)
+
+    for sleutel, naam in (("goud", "Goud"), ("bitcoin", "Bitcoin")):
+        if sleutel in nieuw:
+            item = h.setdefault(sleutel, {"naam": naam, "waarde": 0, "aankoopwaarde": 0, "rendement_pct": 0})
+            log(sleutel, item.get("waarde"), nieuw[sleutel])
+            item["waarde"] = round(nieuw[sleutel], 2)
+            if nieuw.get(f"{sleutel}_aankoop") is not None:
+                item["aankoopwaarde"] = round(nieuw[f"{sleutel}_aankoop"], 2)
+            item["rendement_pct"] = _rendement(item["waarde"], item.get("aankoopwaarde", 0))
+
+    if "aandelen" in nieuw:
+        oud_tot = sum(x.get("waarde", 0) for x in h.get("aandelen", {}).get("posities", []))
+        posities = [
+            {"ticker": a.get("ticker", "").upper().strip(), "naam": a.get("naam", "").strip(),
+             "waarde": round(float(a.get("waarde") or 0), 2), "rendement_pct": round(float(a.get("rendement_pct") or 0), 2)}
+            for a in nieuw["aandelen"] if (a.get("ticker") or a.get("naam"))
+        ]
+        tot = sum(x["waarde"] for x in posities) or 1
+        for x in posities:
+            x["weging"] = round(x["waarde"] / tot * 100, 2)
+        h.setdefault("aandelen", {"naam": "Losse aandelen"})["posities"] = posities
+        log("aandelen", round(oud_tot, 2), round(sum(x["waarde"] for x in posities), 2))
+
+    if "inleg" in nieuw:
+        p["inleg"] = {k: float(v) for k, v in nieuw["inleg"].items()}
+    if "doel" in nieuw:
+        p["doel"] = {"bedrag": float(nieuw["doel"]["bedrag"]), "deadline": nieuw["doel"]["deadline"]}
+
+    p["last_updated"] = vandaag
+    totaal = (h.get("bnd", {}).get("waarde", 0) + h.get("goud", {}).get("waarde", 0)
+              + h.get("bitcoin", {}).get("waarde", 0)
+              + sum(x.get("waarde", 0) for x in h.get("aandelen", {}).get("posities", [])))
+    historie = p.setdefault("historie", [])
+    historie[:] = [x for x in historie if x["datum"] != vandaag] + [{"datum": vandaag, "totaal": round(totaal, 2)}]
+    schrijf(PORTFOLIO_FILE, p)
+    return portfolio()
+
+
+# ── Todo's bewerken ────────────────────────────────────────────────────────────
+
+def todo_bijwerken(todo_id: str, titel: str | None, prio: str | None, beschrijving: str | None) -> None:
+    data = lees(TODOS_FILE, {"todos": []})
+    for t in data["todos"]:
+        if t["id"] == todo_id:
+            if titel:
+                t["title"] = titel
+            if prio in PRIO_ORDE:
+                t["priority"] = prio
+            if beschrijving is not None:
+                t["description"] = beschrijving
+    schrijf(TODOS_FILE, data)
+
+
+def todo_verwijderen(todo_id: str) -> None:
+    data = lees(TODOS_FILE, {"todos": []})
+    data["todos"] = [t for t in data["todos"] if t["id"] != todo_id]
+    schrijf(TODOS_FILE, data)
 
 
 # ── Journal ────────────────────────────────────────────────────────────────────
