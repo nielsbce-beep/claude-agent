@@ -7,6 +7,8 @@ import json
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+from tools.nutrition_ai import MICRONUTRIENTEN, RDA
+
 DATA = Path(__file__).parent.parent / "data"
 CALORIES_FILE = DATA / "calories.json"
 TODOS_FILE = DATA / "todos.json"
@@ -124,11 +126,38 @@ def _laatste_doel(data: dict) -> int:
     return data[dagen[-1]]["doel"] if dagen else STANDAARD_KCAL
 
 
+def voeding_scores(items: list[dict]) -> dict:
+    """Micronutriëntenscore (% ADH, gemiddeld) en bewerkt/onbewerkt-score (onbewerkt telt onbeperkt mee)."""
+    totaal_kcal = sum(i.get("kcal", 0) for i in items)
+    micro_totalen = {k: 0.0 for k in MICRONUTRIENTEN}
+    for i in items:
+        for k, v in (i.get("micros") or {}).items():
+            if k in micro_totalen:
+                micro_totalen[k] += v or 0
+    micros_pct = {k: round(min(100, 100 * micro_totalen[k] / RDA[k])) for k in MICRONUTRIENTEN}
+    micro_score = round(sum(micros_pct.values()) / len(micros_pct)) if items else None
+
+    if totaal_kcal:
+        verwerkt_kcal = sum(i.get("kcal", 0) * i.get("verwerkt_score", 0) for i in items)
+        whole_food_score = round(100 * (1 - verwerkt_kcal / totaal_kcal))
+    else:
+        whole_food_score = None
+
+    return {"micro_score": micro_score, "micros_pct": micros_pct, "micro_totalen": {k: round(v, 1) for k, v in micro_totalen.items()},
+            "whole_food_score": whole_food_score}
+
+
 def calorieen() -> dict:
     data = lees(CALORIES_FILE, {})
     dag = data.get(date.today().isoformat(), {"doel": _laatste_doel(data), "innames": []})
-    return {"goal": dag.get("doel", STANDAARD_KCAL), "items": dag.get("innames", []),
-            "total": sum(i["kcal"] for i in dag.get("innames", []))}
+    items = dag.get("innames", [])
+    return {"goal": dag.get("doel", STANDAARD_KCAL), "items": items,
+            "total": sum(i["kcal"] for i in items),
+            "eiwit_g": round(sum(i.get("eiwit_g", 0) for i in items), 1),
+            "koolhydraten_g": round(sum(i.get("koolhydraten_g", 0) for i in items), 1),
+            "vet_g": round(sum(i.get("vet_g", 0) for i in items), 1),
+            "vezels_g": round(sum(i.get("vezels_g", 0) for i in items), 1),
+            "scores": voeding_scores(items)}
 
 
 def calorie_toevoegen(item: str, kcal: int) -> None:
@@ -136,6 +165,30 @@ def calorie_toevoegen(item: str, kcal: int) -> None:
     dag = data.setdefault(date.today().isoformat(), {"doel": _laatste_doel(data), "innames": []})
     dag["innames"].append({"item": item, "kcal": kcal, "time": datetime.now().strftime("%H:%M")})
     schrijf(CALORIES_FILE, data)
+
+
+def calorie_toevoegen_ai(beschrijving: str) -> dict:
+    """Logt een maaltijd met volledige AI-voedingsanalyse (macro's + micronutriënten + verwerkt-score)."""
+    from tools.nutrition_ai import analyseer
+
+    analyse = analyseer(beschrijving)
+    data = lees(CALORIES_FILE, {})
+    dag = data.setdefault(date.today().isoformat(), {"doel": _laatste_doel(data), "innames": []})
+    inname = {
+        "item": beschrijving,
+        "time": datetime.now().strftime("%H:%M"),
+        "kcal": round(analyse["kcal"]),
+        "eiwit_g": round(analyse["eiwit_g"], 1),
+        "koolhydraten_g": round(analyse["koolhydraten_g"], 1),
+        "vet_g": round(analyse["vet_g"], 1),
+        "vezels_g": round(analyse["vezels_g"], 1),
+        "verwerkt_score": round(analyse["verwerkt_score"], 2),
+        "micros": analyse["micros"],
+        "toelichting": analyse.get("toelichting", ""),
+    }
+    dag["innames"].append(inname)
+    schrijf(CALORIES_FILE, data)
+    return inname
 
 
 def calorie_verwijderen(index: int) -> None:

@@ -399,32 +399,139 @@ function sparkline(vals) {
     <path class="area" d="${line} L${W},${H} L0,${H} Z"/><path class="line" d="${line}"/><circle cx="${lx}" cy="${ly}" r="3"/></svg>`;
 }
 
+function scoreColor(v) {
+  if (v == null) return "var(--faint)";
+  if (v >= 75) return "var(--good)";
+  if (v >= 50) return "var(--warn)";
+  return "var(--bad)";
+}
+
+const PROFIEL_LABEL = { rustig: "rustdag", gemiddeld: "normale dag", zwaar: "zware trainingsdag", onbekend: "" };
+
+function macroRow(label, val, target, unit = "g") {
+  const pct = target ? Math.min(100, (val / target) * 100) : 0;
+  return `<div class="macro-row"><span>${label}</span>
+    <div class="macro-bar"><i style="width:${pct}%"></i></div>
+    <b>${Math.round(val || 0)}<small>/${Math.round(target || 0)}${unit}</small></b></div>`;
+}
+
 function renderFood() {
-  const c = state.calories, el = $("#food");
-  $("#food-goal").textContent = `doel ${c.goal}`;
-  const over = c.total > c.goal, pct = Math.min(100, (c.total / c.goal) * 100);
+  const c = state.calories, el = $("#food"), t = c.targets || {}, s = c.scores || {};
+  const doelKcal = t.kcal ?? c.goal;
+  $("#food-goal").textContent = `doel ${doelKcal}`;
+  const over = c.total > doelKcal, pct = Math.min(100, (c.total / doelKcal) * 100);
   const items = c.items.map((x, i) => ({ ...x, i })).reverse().slice(0, 5);
+  const profielLabel = PROFIEL_LABEL[t.profiel] || "";
   el.innerHTML = `
     <div class="kcal-top"><div class="big-num" style="${over ? "color:var(--bad)" : ""}">${c.total.toLocaleString("nl-NL")}<small> kcal</small></div>
-      <span class="muted small">${over ? `${c.total - c.goal} over` : `${c.goal - c.total} te gaan`}</span></div>
+      <span class="muted small">${over ? `${c.total - doelKcal} over` : `${doelKcal - c.total} te gaan`}${profielLabel ? ` · ${profielLabel}` : ""}</span></div>
     <div class="kcal-bar ${over ? "over" : ""}"><i style="width:${pct}%"></i></div>
+    <div class="macros">
+      ${macroRow("Eiwit", c.eiwit_g, t.eiwit_g)}
+      ${macroRow("Koolhydr.", c.koolhydraten_g, t.koolhydraten_g)}
+      ${macroRow("Vet", c.vet_g, t.vet_g)}
+    </div>
+    ${s.micro_score != null ? `<div class="score-chips">
+      <button type="button" class="score-chip" id="chip-micro"><span>Micro</span><b style="color:${scoreColor(s.micro_score)}">${s.micro_score}%</b></button>
+      <button type="button" class="score-chip" id="chip-whole"><span>Puur</span><b style="color:${scoreColor(s.whole_food_score)}">${s.whole_food_score}%</b></button>
+    </div>` : ""}
     <form class="food-form" id="food-form">
-      <input id="food-item" placeholder="Wat at je?" autocomplete="off">
-      <input id="food-kcal" type="number" min="1" max="5000" placeholder="kcal">
-      <button class="btn" type="submit" aria-label="Toevoegen">${ICON.plus}</button></form>
-    ${items.length ? items.map((x) => `<div class="food-item"><time>${esc(x.time)}</time><span>${esc(x.item)}</span><b>${x.kcal}</b>
+      <input id="food-item" placeholder="Wat at je? bv. 2 eieren, havermout, banaan" autocomplete="off">
+      <button class="btn" type="submit" aria-label="Loggen met AI">${ICON.plus}</button></form>
+    ${items.length ? items.map((x) => `<div class="food-item" data-i="${x.i}"><time>${esc(x.time)}</time><span>${esc(x.item)}</span><b>${x.kcal}</b>
       <button class="x" data-i="${x.i}" aria-label="Verwijderen">${ICON.x}</button></div>`).join("") : `<div class="empty">Nog niets gelogd vandaag.</div>`}`;
+
   $("#food-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const item = $("#food-item").value.trim(), kcal = parseInt($("#food-kcal").value, 10);
-    if (!item || !(kcal > 0)) return toast("Vul een omschrijving en kcal in", true);
-    state.calories = await api("/api/calories", { method: "POST", body: { item, kcal } });
-    renderFood(); $("#food-item").focus();
+    const beschrijving = $("#food-item").value.trim();
+    if (!beschrijving) return;
+    const btn = $("#food-form button[type=submit]");
+    btn.disabled = true; btn.classList.add("spin");
+    try {
+      state.calories = await api("/api/food/ai", { method: "POST", body: { beschrijving } });
+      renderFood(); $("#food-item").focus();
+    } catch (err) {
+      toast("Voedingsanalyse mislukt: " + err.message, true);
+    } finally { btn.disabled = false; btn.classList.remove("spin"); }
   });
-  $$(".x", el).forEach((b) => b.addEventListener("click", async () => {
+  $$(".food-item", el).forEach((row) => row.addEventListener("click", (e) => {
+    if (e.target.closest(".x")) return;
+    openFoodItem(c.items[parseInt(row.dataset.i, 10)]);
+  }));
+  $$(".x", el).forEach((b) => b.addEventListener("click", async (e) => {
+    e.stopPropagation();
     state.calories = await api(`/api/calories/${b.dataset.i}`, { method: "DELETE" });
     renderFood();
   }));
+  if ($("#chip-micro")) $("#chip-micro").addEventListener("click", openVoedingDetail);
+  if ($("#chip-whole")) $("#chip-whole").addEventListener("click", openVoedingDetail);
+}
+
+function openFoodItem(item) {
+  if (!item) return;
+  const labels = state.calories.micro_labels || {};
+  const micros = item.micros || {};
+  const microList = Object.entries(labels)
+    .map(([k, label]) => `<div class="macro-row"><span>${esc(label)}</span><b>${fmtNum(micros[k])}</b></div>`).join("");
+  const m = modal({
+    title: "Maaltijd", width: 480, onClose: () => reload(),
+    body: `<div class="title-input" style="font-size:19px;margin-bottom:4px">${esc(item.item)}</div>
+      ${item.toelichting ? `<p class="muted small" style="margin-bottom:14px">${esc(item.toelichting)}</p>` : ""}
+      <div class="macros">
+        <div class="macro-row"><span>Kcal</span><b>${Math.round(item.kcal)}</b></div>
+        <div class="macro-row"><span>Eiwit</span><b>${fmtNum(item.eiwit_g)} g</b></div>
+        <div class="macro-row"><span>Koolhydraten</span><b>${fmtNum(item.koolhydraten_g)} g</b></div>
+        <div class="macro-row"><span>Vet</span><b>${fmtNum(item.vet_g)} g</b></div>
+        <div class="macro-row"><span>Vezels</span><b>${fmtNum(item.vezels_g)} g</b></div>
+      </div>
+      ${item.verwerkt_score != null ? `<div class="hint">Verwerkingsgraad: ${Math.round(item.verwerkt_score * 100)}%</div>` : ""}
+      ${microList ? `<h4 class="sub-h">Micronutriënten</h4><div class="macros">${microList}</div>` : ""}`,
+    foot: `<button class="btn danger" id="fi-del" type="button">Verwijderen</button>`,
+  });
+  m.$("#fi-del").addEventListener("click", async () => {
+    const idx = state.calories.items.indexOf(item);
+    if (idx < 0) return m.close();
+    state.calories = await api(`/api/calories/${idx}`, { method: "DELETE" });
+    toast("Verwijderd"); m.close();
+  });
+}
+
+function openVoedingDetail() {
+  const c = state.calories, t = c.targets || {}, s = c.scores || {};
+  const labels = c.micro_labels || {}, rda = c.micro_rda || {};
+  const pct = s.micros_pct || {}, totalen = s.micro_totalen || {};
+  const microRows = Object.entries(labels).map(([k, label]) => `
+    <div class="macro-row"><span>${esc(label)}</span>
+      <div class="macro-bar"><i style="width:${Math.min(100, pct[k] || 0)}%;background:${scoreColor(pct[k])}"></i></div>
+      <b>${fmtNum(totalen[k])}<small>/${fmtNum(rda[k])}</small></b></div>`).join("");
+  const uitleg = {
+    rustig: "Rustige dag qua inspanning — minder koolhydraten nodig, iets meer ruimte voor vet.",
+    gemiddeld: "Gemiddelde trainingsdag — gebalanceerde verdeling.",
+    zwaar: "Zware trainingsdag (hoge strain) — extra koolhydraten voor herstel en energie.",
+    onbekend: "Geen Whoop-data voor vandaag — standaardverdeling gebruikt.",
+  }[t.profiel] || "";
+  const m = modal({
+    title: "Voedingsoverzicht vandaag", width: 560,
+    body: `
+      <div class="sec"><div class="sec-h"><h4>Dagdoel</h4><span>${t.strain != null ? `strain ${t.strain}` : ""}</span></div>
+        <p class="muted small">${esc(uitleg)}</p>
+        <div class="macros">
+          ${macroRow("Kcal", c.total, t.kcal, "")}
+          ${macroRow("Eiwit", c.eiwit_g, t.eiwit_g)}
+          ${macroRow("Koolhydraten", c.koolhydraten_g, t.koolhydraten_g)}
+          ${macroRow("Vet", c.vet_g, t.vet_g)}
+        </div>
+      </div>
+      <div class="sec"><div class="sec-h"><h4>Micronutriënten</h4><span style="color:${scoreColor(s.micro_score)}">${s.micro_score ?? "–"}%</span></div>
+        <div class="macros">${microRows || '<p class="muted small">Nog niets gelogd vandaag.</p>'}</div>
+      </div>
+      <div class="sec"><div class="sec-h"><h4>Puur vs. bewerkt</h4><span style="color:${scoreColor(s.whole_food_score)}">${s.whole_food_score ?? "–"}%</span></div>
+        <p class="muted small">Onbewerkte voeding (groente, fruit, vlees, vis, volkoren) telt onbeperkt mee — alleen
+          bewerkte en ultrabewerkte calorieën drukken deze score.</p>
+      </div>`,
+    foot: `<span class="spacer"></span><button class="btn primary" id="vd-close" type="button">Sluiten</button>`,
+  });
+  m.$("#vd-close").addEventListener("click", () => m.close());
 }
 
 function moodStrip(moods, dagen) {
@@ -818,6 +925,7 @@ function openCommitEdit(text) {
 $("#goal-new").addEventListener("click", openNewGoal);
 $("#pf-edit").addEventListener("click", openPortfolio);
 $("#food-goal").addEventListener("click", openCalGoal);
+$("#food-details").addEventListener("click", openVoedingDetail);
 
 /* ═══ Data laden ═════════════════════════════════════════════════════ */
 async function reload(force = false) {

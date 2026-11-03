@@ -353,10 +353,24 @@ textarea { resize: vertical; line-height: 1.6; }
 .kcal-bar { height: 10px; border-radius: 99px; background: #17171a; margin: 14px 0 6px; overflow: hidden; }
 .kcal-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #059669, var(--good)); box-shadow: 0 0 14px rgba(52, 211, 153, .45); transition: width 1s var(--ease); }
 .kcal-bar.over i { background: linear-gradient(90deg, #dc2626, var(--bad)); box-shadow: 0 0 14px rgba(248, 113, 113, .45); }
-.food-form { display: grid; grid-template-columns: 1fr 86px auto; gap: 6px; margin: 14px 0 8px; }
+.macros { display: flex; flex-direction: column; gap: 7px; margin: 12px 0; }
+.macro-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.macro-row > span { width: 78px; flex-shrink: 0; color: var(--muted); }
+.macro-row > span:last-child { width: auto; }
+.macro-bar { flex: 1; height: 5px; border-radius: 99px; background: #17171a; overflow: hidden; }
+.macro-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent-2); transition: width .6s var(--ease); }
+.macro-row b { font: 600 12px var(--mono); color: var(--text-2); white-space: nowrap; }
+.macro-row b small { color: var(--faint); font-weight: 500; }
+.score-chips { display: flex; gap: 8px; margin: 2px 0 12px; }
+.score-chip { flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 7px 11px; border-radius: 10px; background: var(--surface-3); border: 1px solid var(--line-2); font-size: 11.5px; color: var(--muted); }
+.score-chip:hover { border-color: var(--accent); }
+.score-chip b { font: 700 14px var(--mono); }
+.food-form { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin: 14px 0 8px; }
 .food-form input { height: 36px; }
-.food-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--line); }
+.food-form button.spin svg { animation: spin .8s linear infinite; }
+.food-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13px; border-bottom: 1px solid var(--line); cursor: pointer; }
 .food-item:last-child { border-bottom: 0; }
+.food-item:hover span { color: #fff; }
 .food-item time { font: 500 11.5px var(--mono); color: var(--faint); }
 .food-item span { flex: 1; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .food-item b { font: 600 12.5px var(--mono); color: var(--text-2); }

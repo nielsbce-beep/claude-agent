@@ -31,14 +31,15 @@ for _stream in (sys.stdout, sys.stderr):
         _stream.reconfigure(encoding="utf-8")
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from tools import life_data as ld
+from tools import nutrition_ai
 from tools.goals_store import get_active
 from tools.calendar_tools import get_events
-from tools.whoop_api import get_latest_recovery, get_latest_sleep
+from tools.whoop_api import get_latest_recovery, get_latest_sleep, get_todays_strain
 
 CHAT_MODEL = "claude-opus-5-5"
 KALENDER = "Niels AI agenda"
@@ -209,6 +210,18 @@ def whoop() -> dict | None:
     return gecached("whoop", 300, laad)
 
 
+def strain() -> dict | None:
+    def laad():
+        try:
+            s = get_todays_strain().get("score") or {}
+            if s.get("strain") is None:
+                return None
+            return {"strain": round(s["strain"], 1), "kilojoule": s.get("kilojoule")}
+        except Exception:
+            return None
+    return gecached("strain", 300, laad)
+
+
 def agenda(dag: date) -> list[dict]:
     def laad():
         try:
@@ -258,6 +271,12 @@ def doelen() -> list[dict]:
 
 # ── Overzicht ──────────────────────────────────────────────────────────────────
 
+def voeding() -> dict:
+    cal = ld.calorieen()
+    return {**cal, "targets": nutrition_ai.dagdoel(cal["goal"], strain()),
+            "micro_labels": nutrition_ai.LABELS, "micro_rda": nutrition_ai.RDA}
+
+
 def overzicht() -> dict:
     journal = ld.journal_entries(30)
     return {
@@ -272,7 +291,7 @@ def overzicht() -> dict:
         "commit_history": ld.commitment_historie(14),
         "portfolio": ld.portfolio(),
         "books": ld.boeken(),
-        "calories": ld.calorieen(),
+        "calories": voeding(),
         "auth": wachtwoord_ingesteld(),
         "journal": {
             "latest": journal[0] if journal else None,
@@ -282,9 +301,20 @@ def overzicht() -> dict:
     }
 
 
+def _versioned_asset_html() -> str:
+    """Voegt ?v=<mtime> toe aan /static/app.js en app.css zodat de browser nooit een
+    verouderde geparste versie hergebruikt na een update — alleen Cache-Control bleek
+    hiervoor niet betrouwbaar genoeg in combinatie met <link>/<script>-caching."""
+    html = (WEB / "index.html").read_text(encoding="utf-8")
+    for naam in ("app.js", "app.css"):
+        v = int((WEB / naam).stat().st_mtime)
+        html = html.replace(f"/static/{naam}", f"/static/{naam}?v={v}")
+    return html
+
+
 @app.get("/")
 def index():
-    return FileResponse(WEB / "index.html")
+    return HTMLResponse(_versioned_asset_html())
 
 
 @app.get("/api/overview")
@@ -534,13 +564,26 @@ class CalorieIn(BaseModel):
 @app.post("/api/calories")
 def api_cal_add(c: CalorieIn):
     ld.calorie_toevoegen(c.item.strip(), c.kcal)
-    return ld.calorieen()
+    return voeding()
+
+
+class VoedingIn(BaseModel):
+    beschrijving: str = Field(min_length=1, max_length=500)
+
+
+@app.post("/api/food/ai")
+def api_food_ai(v: VoedingIn):
+    try:
+        ld.calorie_toevoegen_ai(v.beschrijving.strip())
+    except Exception as e:
+        raise HTTPException(502, f"Voedingsanalyse mislukt: {e}")
+    return voeding()
 
 
 @app.delete("/api/calories/{index}")
 def api_cal_del(index: int):
     ld.calorie_verwijderen(index)
-    return ld.calorieen()
+    return voeding()
 
 
 class DoelIn(BaseModel):
@@ -550,7 +593,7 @@ class DoelIn(BaseModel):
 @app.put("/api/calories/goal")
 def api_cal_goal(d: DoelIn):
     ld.caloriedoel_zetten(d.goal)
-    return ld.calorieen()
+    return voeding()
 
 
 # ── Journal (hergebruikt journal_agent) ────────────────────────────────────────
