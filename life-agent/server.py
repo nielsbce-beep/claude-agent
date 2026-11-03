@@ -26,6 +26,10 @@ ENV_FILE = BASE / ".env"
 load_dotenv(ENV_FILE, override=True)
 sys.path.insert(0, str(BASE))
 
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8")
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles

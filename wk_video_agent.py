@@ -11,14 +11,20 @@ import asyncio
 from datetime import datetime
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from groq import Groq
 import edge_tts
 from moviepy import AudioFileClip, VideoClip
+import api_client
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_API_KEY     = os.environ.get("GROQ_API_KEY", "")
+FOOTBALL_API_KEY = os.environ.get("FOOTBALL_API_KEY", "")
+ODDS_API_KEY     = os.environ.get("ODDS_API_KEY", "")
 
 BASE_DIR   = Path(__file__).parent
 OUTPUT_DIR = BASE_DIR / "output_videos"
@@ -561,11 +567,52 @@ def build_video(script, audio_path, groep_naam, output_path, word_timings, einds
     video.close()
 
 
+# ─── KLEURCODES VOOR EINDSTAND ────────────────────────────────────────────────
+_RANG_KLEUREN = [GOUD, ZILVER, BRONS, GRIJS]
+
+
+def _assign_kleuren(eindstand_raw: list[dict]) -> list[dict]:
+    return [
+        {**entry, "kleur": _RANG_KLEUREN[i] if i < len(_RANG_KLEUREN) else GRIJS}
+        for i, entry in enumerate(eindstand_raw)
+    ]
+
+
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
 def main():
     OUTPUT_DIR.mkdir(exist_ok=True)
 
-    groep      = GROEPEN[0]
+    groep = GROEPEN[0]
+
+    # ── Live API-data ophalen (overschrijft hardcoded groepsdata) ─────────────
+    group_letter = groep["naam"].split()[-1]   # "Groep F" → "F"
+    if FOOTBALL_API_KEY:
+        print(f"Live WK-data ophalen voor Groep {group_letter} via API-Football...")
+        try:
+            context, eindstand_raw = api_client.build_context_from_api(group_letter)
+
+            if ODDS_API_KEY:
+                print("  Bookmaker kansen ophalen via The Odds API...")
+                try:
+                    fixtures  = api_client.get_group_fixtures(group_letter)
+                    all_odds  = api_client.get_wk_odds()
+                    odds_text = api_client.format_odds_context(fixtures, all_odds)
+                    if odds_text:
+                        context += f"\n\n{odds_text}"
+                    print("  Odds opgehaald.")
+                except Exception as e:
+                    print(f"  Odds ophalen mislukt (niet kritiek): {e}")
+
+            groep["context"]   = context
+            groep["teams"]     = [e["country"].title() for e in eindstand_raw]
+            groep["eindstand"] = _assign_kleuren(eindstand_raw)
+            print(f"  Live data geladen: {', '.join(groep['teams'])}")
+
+        except Exception as e:
+            print(f"  API-ophalen mislukt — hardcoded data wordt gebruikt: {e}")
+    else:
+        print("FOOTBALL_API_KEY niet ingesteld — hardcoded groepsdata wordt gebruikt.")
+
     datum      = datetime.now().strftime("%Y%m%d_%H%M")
     naam       = groep["naam"].replace(" ", "_")
     output     = OUTPUT_DIR / f"scorito_{naam}_{datum}.mp4"

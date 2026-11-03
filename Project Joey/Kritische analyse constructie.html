@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Kritische analyse constructie — Het Terrashuis</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 13px;
+      color: #1a1a1a;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 30px 60px 30px;
+      line-height: 1.6;
+    }
+    h1 { font-size: 20px; border-bottom: 2px solid #1a1a1a; padding-bottom: 6px; margin-bottom: 4px; }
+    h2 { font-size: 15px; margin-top: 36px; margin-bottom: 6px; border-left: 4px solid #c0392b; padding-left: 10px; }
+    h3 { font-size: 13px; margin-top: 20px; margin-bottom: 4px; color: #c0392b; }
+    .meta { color: #555; font-size: 12px; margin-bottom: 30px; }
+    .tekening-blok {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      margin: 18px 0 24px 0;
+      flex-wrap: wrap;
+    }
+    .tekening-blok img {
+      width: 340px;
+      border: 1px solid #ccc;
+      display: block;
+    }
+    .tekening-blok img.smal { width: 220px; }
+    .tekening-blok img.breed { width: 420px; }
+    .kritiek {
+      flex: 1;
+      min-width: 220px;
+      background: #fdf6f6;
+      border-left: 3px solid #c0392b;
+      padding: 12px 14px;
+      font-size: 12.5px;
+    }
+    .kritiek ul { margin: 6px 0 0 0; padding-left: 16px; }
+    .kritiek li { margin-bottom: 6px; }
+    .label {
+      font-size: 11px;
+      color: #777;
+      margin-top: 4px;
+      font-style: italic;
+    }
+    .conclusie {
+      background: #f0f4f8;
+      border: 1px solid #b0bec5;
+      padding: 16px 18px;
+      margin-top: 36px;
+      border-radius: 2px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 12px;
+    }
+    th {
+      background: #2c3e50;
+      color: white;
+      padding: 7px 10px;
+      text-align: left;
+    }
+    td { padding: 6px 10px; border-bottom: 1px solid #ddd; vertical-align: top; }
+    tr:nth-child(even) td { background: #f9f9f9; }
+    .zwaar { color: #c0392b; font-weight: bold; }
+    .middel { color: #e67e22; font-weight: bold; }
+    .licht { color: #27ae60; }
+    .pijl { font-size: 16px; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 30px 0; }
+  </style>
+</head>
+<body>
+
+<h1>Kritische analyse constructief ontwerp</h1>
+<div class="meta">
+  Project ARCO — Het Terrashuis | Kadewoning Kavel 16, Ringdijk Amsterdam<br>
+  Student: Joey Weijers (500912309) &amp; Diemer Klarenbeek (500984245) | Klas FT-BE-1A-03 | Blok 4, 2025–2026<br>
+  Beoordeling op basis van tekeningen uit presentatie, opdracht 6.4
+</div>
+
+<!-- ==================== SECTIE 1 ==================== -->
+<h2>1. Verticale krachtsafdracht (opdracht 3.3)</h2>
+<p>
+  De verticale krachtsafdracht is als eerste schets opgezet. Rode lijnen zijn kolommen,
+  gele kruizen zijn windverband. De opzet is begrijpelijk maar constructief onvolledig.
+</p>
+
+<div class="tekening-blok">
+  <div>
+    <img src="pptx_extract/ppt/media/image56.png" class="smal">
+    <div class="label">3.3 Verticale krachtsafdracht — schets Joey</div>
+  </div>
+  <div>
+    <img src="pptx_extract/ppt/media/image67.png" class="breed">
+    <div class="label">4.2 Horizontale krachtsafdracht — kleurenschets Joey</div>
+  </div>
+  <div class="kritiek">
+    <strong>Bevindingen:</strong>
+    <ul>
+      <li>De kolommenschets (rood) toont een L-vormige plattegrond, maar de positie van de kolommen in de uitkraging boven het water is niet duidelijk.</li>
+      <li>De horizontale krachtsafdracht (rechts) toont windverband (gele kruizen) in elk gevelvak — maar dit is alleen in de <em>lengterichting</em> van het gebouw. De <strong>dwarsrichting (haaks op de Ringvaart) ontbreekt</strong> volledig.</li>
+      <li>Rode kolommen staan bij de balkons — dit is in strijd met de eerder gegeven docentfeedback dat <em>"kolommen niet onder balkons mogen staan"</em>.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== SECTIE 2 ==================== -->
+<h2>2. Constructiedoorsnede — 6.4 (Joey Weijers)</h2>
+<p>
+  Dit is de meest kritische tekening van het project. De doorsnede moet de volledige constructieve opbouw
+  laten zien van fundering tot nok, inclusief vloersamenstelling, kolommen, liggers en windverband.
+</p>
+
+<div class="tekening-blok">
+  <div>
+    <img src="pptx_extract/ppt/media/image98.png">
+    <div class="label">6.4 Constructiedoorsnede — Joey Weijers</div>
+  </div>
+  <div class="kritiek">
+    <strong>Problemen in de doorsnede:</strong>
+    <ul>
+      <li><strong>Windverband in slechts één vak:</strong> Het windverband (X-kruis) is alleen getekend tussen peil+6000 en peil+9000. De verdieping eronder (peil+3000 t/m +6000) en de begane grond (0 t/m +3000) hebben geen windverband in de doorsnede. Dit maakt de krachtafdracht onvolledig.</li>
+      <li><strong>Uitkraging volledig afwezig:</strong> Het gebouw steekt boven het water uit, maar in de doorsnede is de uitkraging niet getekend. Juist daar zitten de grootste constructieve uitdagingen (momenten, kniklengte kolommen).</li>
+      <li><strong>Fundering onduidelijk:</strong> Alleen een horizontale balk bij peil 0 met twee schetsmatige palen, zonder maten, paallengte of paaldoorsnede. Uit de bodemanalyse bleek dat palen minimaal 13,5m lang moeten zijn — dit is nergens in de tekening terug te vinden.</li>
+      <li><strong>Stramienlijnen niet aaneenlopend:</strong> De doorsnede gebruikt stramienen A-D, maar de maten (1200 | 4200 | 1300 = 6700mm) komen niet overeen met het vlekkenplan en de plattegronden, waar de breedte 5500mm is.</li>
+      <li><strong>Peilmaten kloppen niet:</strong> Peil+3000 als begane grondvloer impliceert 3m verdiepingshoogte op BG, maar de plattegrond BG toont 2000 + 2700 = 4700mm in de andere richting — inconsistent.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== SECTIE 3 ==================== -->
+<h2>3. Constructieplattegronden — 6.4 (Joey Weijers &amp; Diemer Klarenbeek)</h2>
+<p>
+  De constructieplattegronden tonen per verdieping de kolommen, liggers, vloerrichting en windverband.
+  Het grootste probleem zit in de inconsistentie van het windverband tussen de verdiepingen.
+</p>
+
+<h3>Begane grond (Diemer)</h3>
+<div class="tekening-blok">
+  <div>
+    <img src="pptx_extract/ppt/media/image99.png">
+    <div class="label">6.4 Constructieplattegrond BG — Diemer</div>
+  </div>
+  <div class="kritiek">
+    <ul>
+      <li>Windverband staat linksboven in het gebouwvlak (stramien A-B zijde).</li>
+      <li>Kanaalplaatvloer is correct benoemd en vloerrichting is aangegeven.</li>
+      <li>Maten 2000mm + 2700mm = 4700mm in de diepterichting — dit is <strong>minder dan de gestelde 5500mm</strong> kavelbreedte. Onduidelijk of dit incl. of excl. wanddikte is.</li>
+      <li>Stramienlijnen 1-3 in de ene richting, A-D in de andere — maar in de doorsnede zijn er geen stramienlijnen 1-3, alleen A-D. Dit is inconsistent.</li>
+    </ul>
+  </div>
+</div>
+
+<h3>Eerste verdieping (Joey)</h3>
+<div class="tekening-blok">
+  <div>
+    <img src="pptx_extract/ppt/media/image100.png">
+    <div class="label">6.4 Constructieplattegrond 1e verdieping — Joey</div>
+  </div>
+  <div class="kritiek">
+    <ul>
+      <li><strong>Windverband staat op andere positie dan BG</strong> — rechtsboven (stramien C-D zijde). Dit betekent dat er geen doorgaand windverbandvlak is van fundering naar dak. Horizontale windkrachten kunnen dan niet correct worden afgedragen.</li>
+      <li>CLT vloer en HEA 280 correct benoemd.</li>
+      <li>Stramienlijnen 1 t/m 7 lopen door het gehele kavel inclusief de dijk — dit is ongebruikelijk voor een constructieplattegrond en maakt de tekening onoverzichtelijk.</li>
+      <li>Vloerrichting is aangegeven met pijlen, maar onduidelijk of dit de overspaningsrichting of de plaatsingsrichting is.</li>
+    </ul>
+  </div>
+</div>
+
+<h3>Tweede verdieping (Joey)</h3>
+<div class="tekening-blok">
+  <div>
+    <img src="pptx_extract/ppt/media/image101.png">
+    <div class="label">6.4 Constructieplattegrond 2e verdieping — Joey</div>
+  </div>
+  <div class="kritiek">
+    <ul>
+      <li>Windverband staat wederom op een andere positie dan de BG en 1e verdieping. <strong>Drie verdiepingen, drie verschillende windverbandposities</strong> — dit is constructief onjuist.</li>
+      <li>CLT vloer correct, meerdere vloervakken getekend.</li>
+      <li>De kolom die in het midden lijkt te staan (tussen stramien B en C) is onlogisch als daar ook een terras of vrije ruimte is gewenst.</li>
+    </ul>
+  </div>
+</div>
+
+<h3>Dak (Joey)</h3>
+<div class="tekening-blok">
+  <div>
+    <img src="pptx_extract/ppt/media/image102.png">
+    <div class="label">6.4 Constructieplattegrond Dak — Joey</div>
+  </div>
+  <div class="kritiek">
+    <ul>
+      <li>Windverband opnieuw anders gepositioneerd dan de onderliggende verdiepingen.</li>
+      <li>Er zijn maar twee CLT vloervakken getekend — onduidelijk of dit het dakterras of een dakconstructie betreft.</li>
+      <li>Geen dakrand, geen dakopbouw (EPDM, sedum) zichtbaar in de constructietekening.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== SECTIE 4 ==================== -->
+<h2>4. Principe aansluitingen — 6.3</h2>
+
+<div class="tekening-blok">
+  <div>
+    <img src="pptx_extract/ppt/media/image94.png" class="breed">
+    <div class="label">6.3 Principe aansluitingen — Diemer (kolom-ligger verbinding)</div>
+  </div>
+  <div class="kritiek">
+    <strong>Positief:</strong>
+    <ul>
+      <li>De kolom-ligger verbinding is herkenbaar: bout, las, kopplaat en windverbanddiagonaal zijn benoemd.</li>
+      <li>Twee aanzichten getekend (perspectief en gevelaanzicht) — goed voor begrip.</li>
+    </ul>
+    <strong>Kritiek:</strong>
+    <ul>
+      <li>Geen maten op de aansluiting — hoe groot is de kopplaat? Welke boutdiameter? Welke lasnaad?</li>
+      <li>Het windverband is als een dunne diagonaal getekend zonder profielaanduiding (rondstaal? plaatstaal? hoekprofiel?).</li>
+      <li>Schaal ontbreekt.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="tekening-blok">
+  <div>
+    <img src="pptx_extract/ppt/media/image97.png" class="smal">
+    <div class="label">6.3 Principe aansluiting dakrand — Joey (schaal 1:5)</div>
+  </div>
+  <div class="kritiek">
+    <strong>Positief:</strong>
+    <ul>
+      <li>Schaal 1:5 is correct voor een detail.</li>
+      <li>Dakopbouw (groen dak, isolatie, thermowood gevel) is herkenbaar.</li>
+      <li>HEA 280 ligger en buiten/binnen zijn benoemd.</li>
+    </ul>
+    <strong>Kritiek:</strong>
+    <ul>
+      <li>Geen maten op het detail.</li>
+      <li>De aansluiting van de dakrand aan de gevel is niet uitgetekend — hoe sluit het sedumdak af tegen de gevel? Waar zit de EPDM afwerking?</li>
+      <li>De isolatiedikte is niet benoemd, terwijl thermische isolatie een eis is uit het PvE (driedubbel glas, goede thermische isolatie).</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== OVERZICHTSTABEL ==================== -->
+<hr>
+<h2>5. Overzicht — constructieve fouten en aandachtspunten</h2>
+
+<table>
+  <tr>
+    <th>Probleem</th>
+    <th>Locatie</th>
+    <th>Ernst</th>
+    <th>Uitleg</th>
+  </tr>
+  <tr>
+    <td>Windverband op andere positie per verdieping</td>
+    <td>Plattegronden BG, 1e, 2e, dak</td>
+    <td class="zwaar">Zwaar</td>
+    <td>Geen doorgaand windverbandvlak = geen krachtpad van dak naar fundering</td>
+  </tr>
+  <tr>
+    <td>Windverband ontbreekt in één richting</td>
+    <td>Alle plattegronden en doorsnede</td>
+    <td class="zwaar">Zwaar</td>
+    <td>Alleen in lengterichting, niet in dwarsrichting — gebouw is in één richting instabiel</td>
+  </tr>
+  <tr>
+    <td>Windverband niet in alle verdiepingen in doorsnede</td>
+    <td>Doorsnede 6.4</td>
+    <td class="middel">Gemiddeld</td>
+    <td>Alleen tussen peil+6000 en +9000 getekend, de rest ontbreekt</td>
+  </tr>
+  <tr>
+    <td>Uitkraging boven water niet getekend</td>
+    <td>Doorsnede 6.4</td>
+    <td class="middel">Gemiddeld</td>
+    <td>Constructief het meest uitdagende onderdeel, maar volledig afwezig in de doorsnede</td>
+  </tr>
+  <tr>
+    <td>Stramienlijnen inconsistent tussen tekeningen</td>
+    <td>Doorsnede vs. plattegronden</td>
+    <td class="middel">Gemiddeld</td>
+    <td>Doorsnede: A-D, breedte 6700mm / Plattegrond: A-D + 1-7, breedte 4700mm</td>
+  </tr>
+  <tr>
+    <td>Fundering niet uitgewerkt</td>
+    <td>Doorsnede 6.4</td>
+    <td class="middel">Gemiddeld</td>
+    <td>Palen van 13,5m zijn aangetoond nodig (Dinoloket), maar niet in tekening verwerkt</td>
+  </tr>
+  <tr>
+    <td>Maten ontbreken op principe aansluitingen</td>
+    <td>6.3 aansluitingen</td>
+    <td class="licht">Licht</td>
+    <td>Boutmaten, lasnaad, plaatdikte — niet benoemd</td>
+  </tr>
+  <tr>
+    <td>Kolommen mogelijk onder balkons</td>
+    <td>Krachtsafdracht 3.3 / 4.2</td>
+    <td class="middel">Gemiddeld</td>
+    <td>Docentfeedback week 3: kolommen mogen niet onder niet-dragende balkons staan</td>
+  </tr>
+</table>
+
+<!-- ==================== CONCLUSIE ==================== -->
+<div class="conclusie">
+  <strong>Conclusie</strong><br><br>
+  Het constructieve concept van Het Terrashuis is inhoudelijk goed gekozen:
+  staalskelet met CLT-vloeren, betonnen begane grond en HEA 280 liggers is een
+  logische keuze voor dit type gebouw. De dimensionering via vuistregels (opdracht 5.3)
+  is correct uitgevoerd en goed gedocumenteerd.<br><br>
+  De grootste zwakte zit in de <strong>uitwerking van het windverband</strong>. Op elke verdieping
+  staat het windverband op een andere positie, waardoor er geen doorgaand krachtpad bestaat.
+  Daarnaast is het windverband alleen in de lengterichting aangebracht — de dwarsrichting
+  (haaks op de Ringvaart) ontbreekt volledig. Voor een smalle, hoge woning die bovendien
+  uitkraagt boven water is dit een fundamentele constructieve tekortkoming.<br><br>
+  De stramienlijnen lopen niet consistent door alle tekeningen, wat de integratie tussen
+  architectuur en constructie verzwakt. Dit is de directe oorzaak van de lage score op
+  BIM (3.5) en integratie (5.0) in de beoordeling.
+</div>
+
+<p style="margin-top:40px; font-size:11px; color:#999;">
+  Analyse gegenereerd op basis van presentatie "Project ARCO Joey Weijers en Diemer Klarenbeek FT-BE-1A-03 Blok4 15 juni 2026.pptx" en beoordelingsformulier d.d. 17-06-2026.
+</p>
+
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Windverband — Het Terrashuis</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 30px; }
+  h1 { font-size: 17px; margin-bottom: 4px; color: #1a1a1a; }
+  .sub { font-size: 12px; color: #666; margin-bottom: 24px; }
+  .tekening-rij { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
+  .blok { background: white; padding: 16px; border: 1px solid #ddd; text-align: center; }
+  .blok h3 { font-size: 12px; margin: 8px 0 2px 0; color: #333; }
+  .blok p { font-size: 11px; color: #888; margin: 0; }
+  .legenda { background: white; border: 1px solid #ddd; padding: 14px 18px; font-size: 12px; }
+  .legenda h3 { font-size: 12px; margin: 0 0 10px 0; }
+  .leg-item { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .leg-kleur { width: 32px; height: 14px; border: 1px solid #ccc; }
+  .noot { background: #fff8e1; border-left: 4px solid #f9a825; padding: 12px 16px; font-size: 12px; margin-top: 20px; max-width: 780px; }
+</style>
+</head>
+<body>
+
+<h1>Windverband — Het Terrashuis, Kadewoning Kavel 16</h1>
+<div class="sub">Correcte positionering windverband | Schematische tekening | Joey Weijers &amp; Diemer Klarenbeek</div>
+
+<!-- LEGENDA -->
+<div class="legenda" style="margin-bottom:20px; display:inline-block;">
+  <h3>Legenda</h3>
+  <div class="leg-item"><div class="leg-kleur" style="background:#27ae60;"></div> Windverband (X-kruis, staal)</div>
+  <div class="leg-item"><div class="leg-kleur" style="background:#2980b9; opacity:0.6;"></div> Glazen gevel (geen windverband)</div>
+  <div class="leg-item"><div class="leg-kleur" style="background:#bdc3c7;"></div> Gesloten gevel / constructief vlak</div>
+  <div class="leg-item"><div class="leg-kleur" style="background:#e74c3c;"></div> Kolom (HEA 280)</div>
+  <div class="leg-item"><div class="leg-kleur" style="background:#f39c12;"></div> Ligger (HEA 280)</div>
+</div>
+
+<div class="tekening-rij">
+
+<!-- STRAATZIJDE -->
+<div class="blok">
+  <svg width="200" height="340" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect x="20" y="20" width="160" height="280" fill="#ecf0f1" stroke="#95a5a6" stroke-width="1.5"/>
+
+    <!-- Floor dividers -->
+    <line x1="20" y1="113" x2="180" y2="113" stroke="#95a5a6" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="20" y1="206" x2="180" y2="206" stroke="#95a5a6" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <!-- Kolommen (rood) -->
+    <rect x="20" y="20" width="8" height="280" fill="#e74c3c"/>
+    <rect x="172" y="20" width="8" height="280" fill="#e74c3c"/>
+    <rect x="89" y="20" width="6" height="280" fill="#e74c3c" opacity="0.6"/>
+
+    <!-- Liggers (oranje) per verdieping -->
+    <rect x="20" y="20" width="160" height="7" fill="#f39c12"/>
+    <rect x="20" y="109" width="160" height="7" fill="#f39c12"/>
+    <rect x="20" y="202" width="160" height="7" fill="#f39c12"/>
+    <rect x="20" y="293" width="160" height="7" fill="#f39c12"/>
+
+    <!-- WINDVERBAND BG (groen X) -->
+    <line x1="28" y1="116" x2="172" y2="300" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+    <line x1="172" y1="116" x2="28" y2="300" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- WINDVERBAND 1e VERD -->
+    <line x1="28" y1="27" x2="172" y2="207" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+    <line x1="172" y1="27" x2="28" y2="207" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Kleine ramen straatzijde -->
+    <rect x="35" y="230" width="35" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+    <rect x="105" y="230" width="35" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+    <rect x="35" y="137" width="35" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+    <rect x="105" y="137" width="35" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+
+    <!-- Pijl richting -->
+    <text x="100" y="15" font-size="9" fill="#c0392b" text-anchor="middle" font-weight="bold">▲ STRAAT</text>
+
+    <!-- Verd labels -->
+    <text x="10" y="72" font-size="9" fill="#555" text-anchor="middle" transform="rotate(-90,10,72)">2e verd</text>
+    <text x="10" y="162" font-size="9" fill="#555" text-anchor="middle" transform="rotate(-90,10,162)">1e verd</text>
+    <text x="10" y="255" font-size="9" fill="#555" text-anchor="middle" transform="rotate(-90,10,255)">BG</text>
+  </svg>
+  <h3>Straatzijde (ZO-gevel)</h3>
+  <p style="color:#27ae60; font-weight:bold;">✓ Windverband alle verdiepingen</p>
+</div>
+
+<!-- ZIJGEVEL LINKS -->
+<div class="blok">
+  <svg width="220" height="340" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="20" width="180" height="280" fill="#ecf0f1" stroke="#95a5a6" stroke-width="1.5"/>
+    <line x1="20" y1="113" x2="200" y2="113" stroke="#95a5a6" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="20" y1="206" x2="200" y2="206" stroke="#95a5a6" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <!-- Kolommen -->
+    <rect x="20" y="20" width="8" height="280" fill="#e74c3c"/>
+    <rect x="192" y="20" width="8" height="280" fill="#e74c3c"/>
+
+    <!-- Liggers -->
+    <rect x="20" y="20" width="180" height="7" fill="#f39c12"/>
+    <rect x="20" y="109" width="180" height="7" fill="#f39c12"/>
+    <rect x="20" y="202" width="180" height="7" fill="#f39c12"/>
+    <rect x="20" y="293" width="180" height="7" fill="#f39c12"/>
+
+    <!-- WINDVERBAND BG -->
+    <line x1="28" y1="116" x2="192" y2="300" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+    <line x1="192" y1="116" x2="28" y2="300" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- WINDVERBAND 1e -->
+    <line x1="28" y1="27" x2="192" y2="207" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+    <line x1="192" y1="27" x2="28" y2="207" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Kleine ramen zijgevel -->
+    <rect x="60" y="230" width="40" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+    <rect x="120" y="230" width="40" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+    <rect x="60" y="137" width="40" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+    <rect x="120" y="137" width="40" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+
+    <!-- Pijlen richtingen -->
+    <text x="110" y="15" font-size="9" fill="#c0392b" text-anchor="middle" font-weight="bold">◄ STRAAT &nbsp;&nbsp; WATER ►</text>
+  </svg>
+  <h3>Zijgevel (NO/ZW-gevel)</h3>
+  <p style="color:#27ae60; font-weight:bold;">✓ Windverband alle verdiepingen</p>
+</div>
+
+<!-- ZIJGEVEL RECHTS (identiek) -->
+<div class="blok">
+  <svg width="220" height="340" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="20" width="180" height="280" fill="#ecf0f1" stroke="#95a5a6" stroke-width="1.5"/>
+    <line x1="20" y1="113" x2="200" y2="113" stroke="#95a5a6" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="20" y1="206" x2="200" y2="206" stroke="#95a5a6" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <rect x="20" y="20" width="8" height="280" fill="#e74c3c"/>
+    <rect x="192" y="20" width="8" height="280" fill="#e74c3c"/>
+    <rect x="20" y="20" width="180" height="7" fill="#f39c12"/>
+    <rect x="20" y="109" width="180" height="7" fill="#f39c12"/>
+    <rect x="20" y="202" width="180" height="7" fill="#f39c12"/>
+    <rect x="20" y="293" width="180" height="7" fill="#f39c12"/>
+
+    <line x1="28" y1="116" x2="192" y2="300" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+    <line x1="192" y1="116" x2="28" y2="300" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+    <line x1="28" y1="27" x2="192" y2="207" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+    <line x1="192" y1="27" x2="28" y2="207" stroke="#27ae60" stroke-width="3" stroke-linecap="round"/>
+
+    <rect x="60" y="230" width="40" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+    <rect x="120" y="230" width="40" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+    <rect x="60" y="137" width="40" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+    <rect x="120" y="137" width="40" height="50" fill="#aed6f1" stroke="#2980b9" stroke-width="1"/>
+
+    <text x="110" y="15" font-size="9" fill="#c0392b" text-anchor="middle" font-weight="bold">◄ STRAAT &nbsp;&nbsp; WATER ►</text>
+  </svg>
+  <h3>Zijgevel (andere zijde)</h3>
+  <p style="color:#27ae60; font-weight:bold;">✓ Windverband alle verdiepingen</p>
+</div>
+
+<!-- WATERZIJDE -->
+<div class="blok">
+  <svg width="200" height="340" xmlns="http://www.w3.org/2000/svg">
+    <!-- Glas achtergrond (blauw) -->
+    <rect x="20" y="20" width="160" height="280" fill="#d6eaf8" stroke="#2980b9" stroke-width="2"/>
+    <line x1="20" y1="113" x2="180" y2="113" stroke="#2980b9" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="20" y1="206" x2="180" y2="206" stroke="#2980b9" stroke-width="1" stroke-dasharray="4,3"/>
+
+    <!-- Kolommen (rood, smal) -->
+    <rect x="20" y="20" width="8" height="280" fill="#e74c3c"/>
+    <rect x="172" y="20" width="8" height="280" fill="#e74c3c"/>
+
+    <!-- Liggers -->
+    <rect x="20" y="20" width="160" height="7" fill="#f39c12"/>
+    <rect x="20" y="109" width="160" height="7" fill="#f39c12"/>
+    <rect x="20" y="202" width="160" height="7" fill="#f39c12"/>
+    <rect x="20" y="293" width="160" height="7" fill="#f39c12"/>
+
+    <!-- Grote glaspartijen -->
+    <rect x="30" y="28" width="138" height="78" fill="#aed6f1" stroke="#2980b9" stroke-width="1.5" opacity="0.8"/>
+    <rect x="30" y="121" width="138" height="78" fill="#aed6f1" stroke="#2980b9" stroke-width="1.5" opacity="0.8"/>
+    <rect x="30" y="214" width="138" height="72" fill="#aed6f1" stroke="#2980b9" stroke-width="1.5" opacity="0.8"/>
+
+    <!-- Terras aanduidingen -->
+    <text x="99" y="75" font-size="10" fill="#1a5276" text-anchor="middle">GLAS</text>
+    <text x="99" y="168" font-size="10" fill="#1a5276" text-anchor="middle">GLAS</text>
+    <text x="99" y="258" font-size="10" fill="#1a5276" text-anchor="middle">GLAS</text>
+
+    <!-- GEEN windverband -->
+    <text x="100" y="310" font-size="10" fill="#c0392b" text-anchor="middle" font-weight="bold">✗ geen X-kruis</text>
+
+    <text x="100" y="15" font-size="9" fill="#2980b9" text-anchor="middle" font-weight="bold">▼ RINGVAART</text>
+  </svg>
+  <h3>Waterzijde (NW-gevel)</h3>
+  <p style="color:#2980b9; font-weight:bold;">Volledig glas — geen windverband</p>
+</div>
+
+</div><!-- einde rij -->
+
+<!-- PLATTEGROND / SCHEMA -->
+<div style="margin-top: 28px;">
+<div class="blok" style="display:inline-block; text-align:left;">
+  <div style="font-size:12px; font-weight:bold; margin-bottom:10px;">Schema plattegrond — windverbandposities (per verdieping identiek)</div>
+  <svg width="340" height="280" xmlns="http://www.w3.org/2000/svg">
+
+    <!-- Gebouw rechthoek -->
+    <rect x="80" y="40" width="180" height="180" fill="#ecf0f1" stroke="#7f8c8d" stroke-width="2"/>
+
+    <!-- Waterkant (blauw) -->
+    <rect x="80" y="40" width="180" height="16" fill="#2980b9" opacity="0.7"/>
+    <text x="170" y="52" font-size="9" fill="white" text-anchor="middle" font-weight="bold">RINGVAART →</text>
+
+    <!-- Straatkant label -->
+    <text x="170" y="234" font-size="9" fill="#c0392b" text-anchor="middle" font-weight="bold">STRAAT</text>
+
+    <!-- Kolommen hoekpunten -->
+    <rect x="80" y="40" width="12" height="12" fill="#e74c3c"/>
+    <rect x="248" y="40" width="12" height="12" fill="#e74c3c"/>
+    <rect x="80" y="208" width="12" height="12" fill="#e74c3c"/>
+    <rect x="248" y="208" width="12" height="12" fill="#e74c3c"/>
+    <!-- Middenkolom -->
+    <rect x="164" y="40" width="12" height="180" fill="#e74c3c" opacity="0.3"/>
+
+    <!-- WINDVERBAND straatzijde (onderste rand) -->
+    <line x1="86" y1="214" x2="254" y2="214" stroke="#27ae60" stroke-width="0"/>
+    <!-- X op straatzijde balk -->
+    <line x1="86" y1="210" x2="130" y2="218" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="130" y1="210" x2="86" y2="218" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="140" y1="210" x2="184" y2="218" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="184" y1="210" x2="140" y2="218" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="194" y1="210" x2="254" y2="218" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="254" y1="210" x2="194" y2="218" stroke="#27ae60" stroke-width="2.5"/>
+
+    <!-- WINDVERBAND linkerzijgevel -->
+    <line x1="80" y1="60" x2="92" y2="110" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="92" y1="60" x2="80" y2="110" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="80" y1="115" x2="92" y2="165" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="92" y1="115" x2="80" y2="165" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="80" y1="170" x2="92" y2="215" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="92" y1="170" x2="80" y2="215" stroke="#27ae60" stroke-width="2.5"/>
+
+    <!-- WINDVERBAND rechterzijgevel -->
+    <line x1="248" y1="60" x2="260" y2="110" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="260" y1="60" x2="248" y2="110" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="248" y1="115" x2="260" y2="165" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="260" y1="115" x2="248" y2="165" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="248" y1="170" x2="260" y2="215" stroke="#27ae60" stroke-width="2.5"/>
+    <line x1="260" y1="170" x2="248" y2="215" stroke="#27ae60" stroke-width="2.5"/>
+
+    <!-- Waterzijde: geen windverband, markeer -->
+    <line x1="80" y1="56" x2="260" y2="56" stroke="#2980b9" stroke-width="3"/>
+    <text x="300" y="58" font-size="9" fill="#2980b9">Geen WV</text>
+
+    <!-- Labels -->
+    <text x="60" y="130" font-size="9" fill="#27ae60" text-anchor="middle" transform="rotate(-90,60,130)">Windverband</text>
+    <text x="280" y="130" font-size="9" fill="#27ae60" text-anchor="middle" transform="rotate(90,280,130)">Windverband</text>
+    <text x="170" y="248" font-size="9" fill="#27ae60" text-anchor="middle">Windverband (straatzijde)</text>
+
+    <!-- Pijl Noord (water) -->
+    <text x="22" y="55" font-size="22" fill="#2980b9">↑</text>
+    <text x="10" y="75" font-size="9" fill="#2980b9">Water</text>
+
+    <!-- Ruimte binnen -->
+    <text x="170" y="130" font-size="11" fill="#7f8c8d" text-anchor="middle">Vrije plattegrond</text>
+    <text x="170" y="145" font-size="10" fill="#7f8c8d" text-anchor="middle">(geen WV binnenin)</text>
+  </svg>
+</div>
+</div>
+
+<div class="noot">
+  <strong>Toelichting:</strong> Het windverband (groene X-kruis) zit op de <strong>straatzijde</strong> en beide <strong>zijgevels</strong> — op alle verdiepingen, op <em>dezelfde positie</em>.
+  Dit zorgt voor stabiliteit in twee richtingen: langs de Ringvaart (via de zijgevels) en haaks daarop (via de straatgevel).
+  De <strong>waterzijde</strong> blijft volledig vrij van windverband, zodat maximaal glas mogelijk is richting de Ringvaart.
+  <br><br>
+  <strong>Let op:</strong> het windverband moet op elke verdieping op <em>exact hetzelfde vlak</em> zitten — anders is er geen doorgaand krachtpad van dak naar fundering.
+</div>
+
+<p style="font-size:10px; color:#aaa; margin-top:16px;">Project ARCO — Het Terrashuis | Kadewoning Kavel 16 Ringdijk Amsterdam | Schematische constructietekening</p>
+
+</body>
+</html>

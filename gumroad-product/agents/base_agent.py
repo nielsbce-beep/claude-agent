@@ -1,8 +1,9 @@
 import sys as _sys, os as _os; _sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent)); import config
 import anthropic
 from datetime import date
+from pathlib import Path
 
-client = anthropic.Anthropic()
+client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent.parent / '.env').get('ANTHROPIC_API_KEY'))
 MODEL = config.MODEL
 
 

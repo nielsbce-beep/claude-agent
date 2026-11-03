@@ -101,7 +101,7 @@ def on_page(canvas, doc):
     canvas.restoreState()
 
 # ── Build ──────────────────────────────────────────────────────────────────────
-OUTPUT = "C:/Users/niels/Claude agent/gumroad-product/Life Agent — Installation Guide.pdf"
+OUTPUT = "C:/Users/niels/Claude agent/gumroad-product/Life-Agent-Installation-Guide.pdf"
 
 doc = SimpleDocTemplate(
     OUTPUT, pagesize=A4,
@@ -243,7 +243,7 @@ story.append(Paragraph(
     "2. Copy your Client ID and Secret into <font name='Courier' color='#00ff88'>.env</font>.<br/>"
     "3. Run the login command — a browser window opens for OAuth:",
     body_style))
-story.append(code_block(["python cli.py whoop_login"]))
+story.append(code_block(["python cli.py whoop-login"]))
 story.append(Paragraph(
     "Your token is saved locally and refreshes automatically. "
     "You only need to do this once.",

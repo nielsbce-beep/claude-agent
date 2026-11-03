@@ -9,7 +9,7 @@ import secrets
 
 WHOOP_AUTH_URL = "https://api.prod.whoop.com/oauth/oauth2/auth"
 WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token"
-WHOOP_BASE_URL = "https://api.prod.whoop.com/developer/v1"
+WHOOP_BASE_URL = "https://api.prod.whoop.com/developer/v2"
 TOKEN_FILE = ".whoop_token.json"
 
 

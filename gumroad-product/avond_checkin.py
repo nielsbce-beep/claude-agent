@@ -17,7 +17,7 @@ import config
 from tools.goals_store import get_active, log_check_in, complete_milestone
 from journal_agent import _save_entry, _extract_metadata, _get_entry
 
-client = anthropic.Anthropic()
+client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
 MODEL = config.MODEL
 TODAY = datetime.now().strftime("%A %d %B %Y")
 TODAY_DATE = date.today().isoformat()

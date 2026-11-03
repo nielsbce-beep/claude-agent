@@ -27,7 +27,8 @@ Vandaag is: {today}"""
             agenda_context = ""
 
         import anthropic
-        client = anthropic.Anthropic()
+        from pathlib import Path
+        client = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent.parent / '.env').get('ANTHROPIC_API_KEY'))
         from agents.base_agent import MODEL
 
         prev = ""

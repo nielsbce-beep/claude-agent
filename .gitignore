@@ -6,6 +6,7 @@
 *.key
 *.pem
 secrets/
+**/.whoop_token.json
 
 # Python
 __pycache__/

@@ -13,7 +13,7 @@ load_dotenv(Path(__file__).parent / ".env", override=True)
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-client   = anthropic.Anthropic()
+client   = anthropic.Anthropic(api_key=__import__('dotenv').dotenv_values(Path(__file__).parent / '.env').get('ANTHROPIC_API_KEY'))
 MODEL    = config.MODEL
 TODAY    = datetime.now().strftime("%A %d %B %Y")
 PORTFOLIO = Path(__file__).parent / "data" / "portfolio.json"

@@ -5,40 +5,45 @@
       "title": "DUO + TU Delft uitschrijving afwachten",
       "description": "Mailtjes verstuurd op 28 mei. Wachten op reactie over: OV-kaart, studiefinanciering, diplomatermijn. Zodra reactie binnen is: formele uitschrijving via Studielink afronden.",
       "priority": "medium",
-      "done": false,
-      "created_at": "2026-05-27"
+      "done": true,
+      "created_at": "2026-05-27",
+      "done_at": "2026-11-01"
     },
     {
       "id": "todo_002",
       "title": "Atomic Habits uitlezen",
       "description": "Nu op blz 100 van 350. Doel: boek volledig uitlezen (telt mee voor 'elk maand een boek' doel).",
       "priority": "low",
-      "done": false,
-      "created_at": "2026-05-27"
+      "done": true,
+      "created_at": "2026-05-27",
+      "done_at": "2026-11-01"
     },
     {
       "id": "todo_003",
       "title": "PMI certificaat toets maken",
       "description": "Niet urgent. Toets maken wanneer er ruimte is tussen andere verplichtingen.",
       "priority": "low",
-      "done": false,
-      "created_at": "2026-05-27"
+      "done": true,
+      "created_at": "2026-05-27",
+      "done_at": "2026-11-01"
     },
     {
       "id": "todo_005",
       "title": "Kledingstuk kopen bij Hang Eleven",
       "description": "Telt mee voor doel 'stijl verbeteren: elke 3 weken kleding'. Eerste mijlpaal: kledingstuk voor 15 jun.",
       "priority": "medium",
-      "done": false,
-      "created_at": "2026-05-27"
+      "done": true,
+      "created_at": "2026-05-27",
+      "done_at": "2026-11-01"
     },
     {
       "id": "todo_004",
       "title": "Life coach verkoop + content",
       "description": "Verder werken aan life-agent verkoopstrategie. Content maken (video, posts) voor de life coach. Gebruik overige tijd hiervoor.",
       "priority": "medium",
-      "done": false,
-      "created_at": "2026-05-27"
+      "done": true,
+      "created_at": "2026-05-27",
+      "done_at": "2026-11-01"
     }
   ]
 }

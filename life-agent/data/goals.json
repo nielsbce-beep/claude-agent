@@ -9,19 +9,19 @@
       "milestones": [
         {
           "text": "Deeltoets 2 Hydrologie halen (12 jun)",
-          "done": false
+          "done": true
         },
         {
           "text": "Tentamen Vloeistofmechanica halen (16 jun)",
-          "done": false
+          "done": true
         },
         {
           "text": "Tentamen Waterbouwkunde halen (19 jun)",
-          "done": false
+          "done": true
         },
         {
           "text": "Tentamen Numerieke Wiskunde halen (25 jun)",
-          "done": false
+          "done": true
         },
         {
           "text": "MUMIE 6: Numerical time integration (deadline 1 jun)",
@@ -29,18 +29,18 @@
         },
         {
           "text": "MUMIE 3: Numerical differentiation (deadline 5 jun)",
-          "done": false
+          "done": true
         },
         {
           "text": "MUMIE 7: Finite-difference method (deadline 12 jun)",
-          "done": false
+          "done": true
         },
         {
           "text": "MUMIE 4: Nonlinear equations (deadline 12 jun)",
-          "done": false
+          "done": true
         }
       ],
-      "progress": 50,
+      "progress": 100,
       "check_ins": [
         {
           "date": "2026-05-26T21:00:00",
@@ -61,10 +61,15 @@
           "date": "2026-06-09T09:00:00",
           "note": "Hydrologie lecture 3 en 5 afgerond. Nu bezig met WBK lectures 11+12.",
           "progress": 50
+        },
+        {
+          "date": "2026-07-19T17:06:11.480545",
+          "note": "Studie periode 4 gehaald — alle tentamens en opdrachten afgerond.",
+          "progress": 100
         }
       ],
       "created_at": "2026-05-22T17:34:19.555990",
-      "status": "active"
+      "status": "completed"
     },
     {
       "id": "b04e5a6f",

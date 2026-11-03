@@ -1,8 +1,12 @@
 {
+  "env": {
+    "FOOTBALL_API_KEY": "",
+    "ODDS_API_KEY": ""
+  },
   "permissions": {
     "allow": [
       "WebSearch",
-      "WebFetch(domain:jfk.men)",
+      "WebFetch(*)",
       "PowerShell(& \"C:\\\\Users\\\\niels\\\\anaconda3\\\\python.exe\" -c \"import PIL; print\\('Pillow OK:', PIL.__version__\\)\")",
       "Bash(ls \"C:/Windows/Fonts/\" | grep -i \"impact\\\\|IMPACT\")",
       "Bash(pip install *)",
@@ -26,7 +30,23 @@
       "Bash(pip show *)",
       "Bash(python -m pip show reportlab)",
       "Bash(python -m pip install reportlab -q)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(python -c \"from tools.whoop_api import get_headers; get_headers\\(\\)\")",
+      "Bash(python reset_study_schedule.py --help)",
+      "Bash(python -c \"import anthropic; print\\(anthropic.__version__\\)\")",
+      "Bash(python goals_coach.py lijst)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 *)",
+      "Skill(update-config)",
+      "Skill(fewer-permission-prompts)",
+      "mcp__mcp-registry__list_connectors",
+      "mcp__mcp-registry__search_mcp_registry",
+      "Bash(find \"C:\\\\Users\\\\niels\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\931c22f5-b873-4444-91bd-0bed3807fc9e\\\\1d31eab6-7fb6-4bfe-a595-9865ab1cedd4\\\\skills\\\\morning\" -iname \"*fraunces*\" 2>/dev/null)",
+      "Bash(base64 -w0 \"C:\\\\Users\\\\niels\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\931c22f5-b873-4444-91bd-0bed3807fc9e\\\\1d31eab6-7fb6-4bfe-a595-9865ab1cedd4\\\\skills\\\\morning\\\\assets\\\\fonts\\\\fraunces-latin-600-normal.woff2\")",
+      "Bash(python cli.py --help)",
+      "Bash(python make_whoop_guide_pdf.py)",
+      "Bash(rm -f page_out.txt)",
+      "Bash(rm -f life-agent-v1.0.zip)"
     ]
   }
 }
