@@ -109,7 +109,7 @@
       "title": "Halve marathon lopen (eind 2026)",
       "description": "Looptijd: 7.67km in 35.5 min (4:37/km). Opbouw via wekelijks schema naar 21.1km. Doel: finishen in ~1:45-1:50.",
       "category": "sport",
-      "deadline": "2026-11-07",
+      "deadline": "2027-05-09",
       "milestones": [
         {
           "text": "Eerste 14km aaneengesloten lopen",
@@ -147,9 +147,17 @@
         {
           "text": "120kg bereikt",
           "done": false
+        },
+        {
+          "text": "110kg bereikt",
+          "done": true
+        },
+        {
+          "text": "115kg bereikt",
+          "done": false
         }
       ],
-      "progress": 5,
+      "progress": 25,
       "check_ins": [
         {
           "date": "2026-05-26T21:00:00",

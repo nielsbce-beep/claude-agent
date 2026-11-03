@@ -49,10 +49,10 @@ app.mount("/static", StaticFiles(directory=WEB), name="static")
 
 
 @app.middleware("http")
-async def geen_browser_cache_static(request: Request, call_next):
-    """Dwing revalidatie af voor /static zodat een nieuwe app.js/app.css altijd meteen geladen wordt."""
+async def geen_browser_cache(request: Request, call_next):
+    """Dwing revalidatie af op alle GET-responses (incl. index.html) zodat een update altijd meteen geladen wordt."""
     response = await call_next(request)
-    if request.url.path.startswith("/static/"):
+    if request.method == "GET":
         response.headers["Cache-Control"] = "no-cache, must-revalidate"
     return response
 
@@ -271,6 +271,7 @@ def overzicht() -> dict:
         "streak": ld.streak(),
         "commit_history": ld.commitment_historie(14),
         "portfolio": ld.portfolio(),
+        "books": ld.boeken(),
         "calories": ld.calorieen(),
         "auth": wachtwoord_ingesteld(),
         "journal": {
@@ -330,6 +331,40 @@ def api_todo_edit(todo_id: str, t: TodoEdit):
 @app.delete("/api/todos/{todo_id}")
 def api_todo_delete(todo_id: str):
     ld.todo_verwijderen(todo_id)
+    return {"ok": True}
+
+
+# ── Boekenlijst ──────────────────────────────────────────────────────────────
+
+class BoekIn(BaseModel):
+    titel: str = Field(min_length=1, max_length=200)
+
+
+@app.post("/api/books")
+def api_boek_add(b: BoekIn):
+    return ld.boek_toevoegen(b.titel)
+
+
+@app.post("/api/books/{boek_id}/toggle")
+def api_boek_toggle(boek_id: str):
+    ld.boek_toggle(boek_id)
+    return {"ok": True}
+
+
+class BoekEdit(BaseModel):
+    titel: str | None = Field(default=None, max_length=200)
+    notities: str | None = Field(default=None, max_length=2000)
+
+
+@app.patch("/api/books/{boek_id}")
+def api_boek_edit(boek_id: str, b: BoekEdit):
+    ld.boek_bijwerken(boek_id, (b.titel or "").strip() or None, b.notities)
+    return {"ok": True}
+
+
+@app.delete("/api/books/{boek_id}")
+def api_boek_delete(boek_id: str):
+    ld.boek_verwijderen(boek_id)
     return {"ok": True}
 
 

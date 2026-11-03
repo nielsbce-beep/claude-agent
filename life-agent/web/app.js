@@ -119,7 +119,7 @@ function render() {
 
   $("#logout").hidden = !s.auth;
   renderRecovery(); renderAgenda(); renderCommitment(); renderGoals();
-  renderTodos(); renderPortfolio(); renderFood(); renderJournalMini();
+  renderTodos(); renderPortfolio(); renderFood(); renderJournalMini(); renderBooks();
 }
 
 function recZone(p) {
@@ -301,6 +301,66 @@ function renderTodos() {
     if (!title) return;
     await api("/api/todos", { method: "POST", body: { title, priority: todoPrio } });
     reload();
+  });
+}
+
+function renderBooks() {
+  const books = state.books || [], el = $("#books");
+  const teLezen = books.filter((b) => !b.gelezen);
+  const gelezen = books.filter((b) => b.gelezen);
+  $("#books-count").textContent = `${teLezen.length} te lezen`;
+  const row = (b) => `<div class="book" data-id="${esc(b.id)}">
+      <button class="check ${b.gelezen ? "on" : ""}" aria-label="Gelezen">${ICON.check}</button>
+      <div class="book-main"><div class="book-t">${esc(b.titel)}</div>
+        ${b.notities ? `<div class="book-n" title="${esc(b.notities)}">${esc(b.notities)}</div>` : ""}</div>
+      <button class="x" type="button" aria-label="Verwijderen">${ICON.x}</button></div>`;
+  const list = books.length
+    ? teLezen.map(row).join("") + (gelezen.length ? `<div class="book-sep">Gelezen — ${gelezen.length}</div>${gelezen.map(row).join("")}` : "")
+    : `<div class="empty">Nog geen boeken toegevoegd.</div>`;
+  el.innerHTML = `${list}
+    <form class="todo-add" id="book-form"><input id="book-input" placeholder="Nieuw boek…" autocomplete="off">
+      <button class="btn" type="submit" aria-label="Toevoegen">${ICON.plus}</button></form>`;
+
+  $$(".book .check", el).forEach((b) => b.addEventListener("click", async () => {
+    const row = b.closest(".book");
+    await api(`/api/books/${encodeURIComponent(row.dataset.id)}/toggle`, { method: "POST" });
+    reload();
+  }));
+  $$(".book-main", el).forEach((m) => m.addEventListener("click", () => {
+    const id = m.closest(".book").dataset.id;
+    openBook(books.find((x) => x.id === id));
+  }));
+  $$(".book .x", el).forEach((b) => b.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const row = b.closest(".book");
+    await api(`/api/books/${encodeURIComponent(row.dataset.id)}`, { method: "DELETE" });
+    reload();
+  }));
+  $("#book-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const titel = $("#book-input").value.trim();
+    if (!titel) return;
+    await api("/api/books", { method: "POST", body: { titel } });
+    reload();
+  });
+}
+
+function openBook(b) {
+  if (!b) return;
+  const m = modal({
+    title: "Boek bewerken", width: 480, onClose: () => reload(),
+    body: `<input class="title-input" id="bk-titel" value="${esc(b.titel)}" maxlength="200">
+      <label class="f"><span>Notities</span><textarea id="bk-notities" rows="4" placeholder="Wat nam je mee uit dit boek?">${esc(b.notities || "")}</textarea></label>`,
+    foot: `<button class="btn danger" id="bk-del" type="button">Verwijderen</button><span class="spacer"></span>
+      <button class="btn primary" id="bk-save" type="button">Opslaan</button>`,
+  });
+  m.$("#bk-save").addEventListener("click", async () => {
+    await api(`/api/books/${encodeURIComponent(b.id)}`, { method: "PATCH", body: { titel: m.$("#bk-titel").value, notities: m.$("#bk-notities").value } });
+    toast("Boek opgeslagen"); m.close();
+  });
+  m.$("#bk-del").addEventListener("click", async () => {
+    await api(`/api/books/${encodeURIComponent(b.id)}`, { method: "DELETE" });
+    toast("Boek verwijderd"); m.close();
   });
 }
 
@@ -777,7 +837,7 @@ $("#logout").addEventListener("click", async () => {
 });
 
 function skeletons() {
-  ["#recovery", "#agenda", "#commitment", "#goals", "#todos", "#portfolio", "#food", "#journal-mini"].forEach((s) => {
+  ["#recovery", "#agenda", "#commitment", "#goals", "#todos", "#portfolio", "#food", "#journal-mini", "#books"].forEach((s) => {
     $(s).innerHTML = '<div class="skeleton" style="width:70%"></div><div class="skeleton"></div><div class="skeleton" style="width:50%"></div>';
   });
 }

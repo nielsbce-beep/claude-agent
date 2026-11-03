@@ -1,0 +1,100 @@
+{
+  "books": [
+    {
+      "id": "boek_01",
+      "titel": "Ask and It Is Given",
+      "gelezen": false,
+      "notities": ""
+    },
+    {
+      "id": "boek_02",
+      "titel": "Emotional Alchemy",
+      "gelezen": false,
+      "notities": ""
+    },
+    {
+      "id": "boek_03",
+      "titel": "Estrogeneration",
+      "gelezen": true,
+      "notities": ""
+    },
+    {
+      "id": "boek_04",
+      "titel": "Think and Grow Rich",
+      "gelezen": true,
+      "notities": ""
+    },
+    {
+      "id": "boek_05",
+      "titel": "The Alchemist",
+      "gelezen": true,
+      "notities": ""
+    },
+    {
+      "id": "boek_06",
+      "titel": "Rich Dad Poor Dad",
+      "gelezen": true,
+      "notities": ""
+    },
+    {
+      "id": "boek_07",
+      "titel": "So Good They Can't Ignore You",
+      "gelezen": false,
+      "notities": ""
+    },
+    {
+      "id": "boek_08",
+      "titel": "The Psychology of Money",
+      "gelezen": true,
+      "notities": ""
+    },
+    {
+      "id": "boek_09",
+      "titel": "A Mind Made of Storm",
+      "gelezen": false,
+      "notities": ""
+    },
+    {
+      "id": "boek_10",
+      "titel": "Op Blote Handen",
+      "gelezen": true,
+      "notities": ""
+    },
+    {
+      "id": "boek_11",
+      "titel": "The Obstacle Is the Way",
+      "gelezen": false,
+      "notities": ""
+    },
+    {
+      "id": "boek_12",
+      "titel": "The War of Art",
+      "gelezen": false,
+      "notities": ""
+    },
+    {
+      "id": "boek_13",
+      "titel": "The Art of War",
+      "gelezen": false,
+      "notities": ""
+    },
+    {
+      "id": "boek_14",
+      "titel": "Atomic Habits",
+      "gelezen": true,
+      "notities": "Wellicht notities gaan aanmaken."
+    },
+    {
+      "id": "boek_15",
+      "titel": "Eat That Frog",
+      "gelezen": false,
+      "notities": ""
+    },
+    {
+      "id": "boek_16",
+      "titel": "Sales boek van Brian Tracy",
+      "gelezen": false,
+      "notities": ""
+    }
+  ]
+}

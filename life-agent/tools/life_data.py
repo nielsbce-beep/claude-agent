@@ -13,6 +13,7 @@ TODOS_FILE = DATA / "todos.json"
 GROWTH_FILE = DATA / "growth_log.json"
 PORTFOLIO_FILE = DATA / "portfolio.json"
 JOURNAL_FILE = DATA / "journal.json"
+BOOKS_FILE = DATA / "books.json"
 
 PRIO_ORDE = {"high": 0, "medium": 1, "low": 2}
 STANDAARD_KCAL = 2500
@@ -328,6 +329,47 @@ def todo_verwijderen(todo_id: str) -> None:
     data = lees(TODOS_FILE, {"todos": []})
     data["todos"] = [t for t in data["todos"] if t["id"] != todo_id]
     schrijf(TODOS_FILE, data)
+
+
+# ── Boekenlijst ────────────────────────────────────────────────────────────────
+
+def boeken() -> list[dict]:
+    return lees(BOOKS_FILE, {"books": []}).get("books", [])
+
+
+def boek_toevoegen(titel: str) -> dict:
+    data = lees(BOOKS_FILE, {"books": []})
+    nummers = [int(b["id"].split("_")[1]) for b in data["books"] if b["id"].startswith("boek_")]
+    boek = {"id": f"boek_{(max(nummers, default=0) + 1):02d}", "titel": titel.strip(), "gelezen": False, "notities": ""}
+    data["books"].append(boek)
+    schrijf(BOOKS_FILE, data)
+    return boek
+
+
+def boek_toggle(boek_id: str) -> None:
+    data = lees(BOOKS_FILE, {"books": []})
+    for b in data["books"]:
+        if b["id"] == boek_id:
+            b["gelezen"] = not b.get("gelezen", False)
+            break
+    schrijf(BOOKS_FILE, data)
+
+
+def boek_bijwerken(boek_id: str, titel: str | None, notities: str | None) -> None:
+    data = lees(BOOKS_FILE, {"books": []})
+    for b in data["books"]:
+        if b["id"] == boek_id:
+            if titel:
+                b["titel"] = titel.strip()
+            if notities is not None:
+                b["notities"] = notities.strip()
+    schrijf(BOOKS_FILE, data)
+
+
+def boek_verwijderen(boek_id: str) -> None:
+    data = lees(BOOKS_FILE, {"books": []})
+    data["books"] = [b for b in data["books"] if b["id"] != boek_id]
+    schrijf(BOOKS_FILE, data)
 
 
 # ── Journal ────────────────────────────────────────────────────────────────────
