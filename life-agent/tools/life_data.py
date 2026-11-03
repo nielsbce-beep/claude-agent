@@ -159,12 +159,13 @@ def portfolio() -> dict:
     onderdelen = {
         "BND": h.get("bnd", {}).get("waarde", 0),
         "Aandelen": sum(x.get("waarde", 0) for x in h.get("aandelen", {}).get("posities", [])),
+        "Vanguard": h.get("vanguard", {}).get("waarde", 0),
         "Goud": h.get("goud", {}).get("waarde", 0),
         "Bitcoin": h.get("bitcoin", {}).get("waarde", 0),
     }
     inleg = p.get("inleg", {})
     per_maand = inleg.get("bnd_maand", 0) + inleg.get("goud_maand", 0) + \
-        (inleg.get("aandelen_week", 0) + inleg.get("bitcoin_week", 0)) * 52 / 12
+        (inleg.get("aandelen_week", 0) + inleg.get("vanguard_week", 0) + inleg.get("bitcoin_week", 0)) * 52 / 12
     totaal = sum(onderdelen.values())
     historie = list(p.get("historie", []))
     if not historie or historie[-1]["datum"] != p.get("last_updated"):
@@ -192,6 +193,39 @@ def portfolio() -> dict:
 
 def portfolio_ruw() -> dict:
     return lees(PORTFOLIO_FILE, {})
+
+
+def portfolio_ververs_koersen() -> dict:
+    """Haal live koersen op (Yahoo Finance) voor losse aandelen + Vanguard ETF, net als Trading 212."""
+    from tools.stock_prices import ververs_posities, ververs_positie
+
+    p = lees(PORTFOLIO_FILE, {})
+    h = p.setdefault("holdings", {})
+    vandaag = date.today().isoformat()
+    updates = p.setdefault("updates", [])
+
+    aandelen = h.setdefault("aandelen", {"naam": "Losse aandelen", "posities": []})
+    oud_aandelen = sum(x.get("waarde", 0) for x in aandelen["posities"])
+    ververs_posities(aandelen["posities"])
+    nieuw_aandelen = sum(x.get("waarde", 0) for x in aandelen["posities"])
+    if round(oud_aandelen, 2) != round(nieuw_aandelen, 2):
+        updates.append({"datum": vandaag, "component": "aandelen", "oud": round(oud_aandelen, 2), "nieuw": round(nieuw_aandelen, 2)})
+
+    vg = h.get("vanguard")
+    if vg and vg.get("aantal"):
+        oud_vg = vg.get("waarde", 0)
+        ververs_positie(vg)
+        if round(oud_vg, 2) != round(vg.get("waarde", 0), 2):
+            updates.append({"datum": vandaag, "component": "vanguard", "oud": round(oud_vg, 2), "nieuw": round(vg.get("waarde", 0), 2)})
+
+    p["last_updated"] = vandaag
+    totaal = (h.get("bnd", {}).get("waarde", 0) + h.get("goud", {}).get("waarde", 0)
+              + h.get("bitcoin", {}).get("waarde", 0) + h.get("vanguard", {}).get("waarde", 0)
+              + sum(x.get("waarde", 0) for x in aandelen["posities"]))
+    historie = p.setdefault("historie", [])
+    historie[:] = [x for x in historie if x["datum"] != vandaag] + [{"datum": vandaag, "totaal": round(totaal, 2)}]
+    schrijf(PORTFOLIO_FILE, p)
+    return portfolio()
 
 
 def _rendement(waarde: float, aankoop: float) -> float:
@@ -233,10 +267,24 @@ def portfolio_bijwerken(nieuw: dict) -> dict:
                 item["aankoopwaarde"] = round(nieuw[f"{sleutel}_aankoop"], 2)
             item["rendement_pct"] = _rendement(item["waarde"], item.get("aankoopwaarde", 0))
 
+    if "vanguard" in nieuw:
+        item = h.setdefault("vanguard", {"naam": "Vanguard FTSE All-World (Acc)", "ticker": "", "aantal": 0,
+                                          "waarde": 0, "aankoopwaarde": 0, "rendement_pct": 0})
+        log("vanguard", item.get("waarde"), nieuw["vanguard"])
+        item["waarde"] = round(nieuw["vanguard"], 2)
+        if nieuw.get("vanguard_aankoop") is not None:
+            item["aankoopwaarde"] = round(nieuw["vanguard_aankoop"], 2)
+        if nieuw.get("vanguard_ticker") is not None:
+            item["ticker"] = nieuw["vanguard_ticker"].upper().strip()
+        if nieuw.get("vanguard_aantal") is not None:
+            item["aantal"] = round(float(nieuw["vanguard_aantal"]), 6)
+        item["rendement_pct"] = _rendement(item["waarde"], item.get("aankoopwaarde", 0))
+
     if "aandelen" in nieuw:
         oud_tot = sum(x.get("waarde", 0) for x in h.get("aandelen", {}).get("posities", []))
         posities = [
             {"ticker": a.get("ticker", "").upper().strip(), "naam": a.get("naam", "").strip(),
+             "aantal": round(float(a.get("aantal") or 0), 6),
              "waarde": round(float(a.get("waarde") or 0), 2), "rendement_pct": round(float(a.get("rendement_pct") or 0), 2)}
             for a in nieuw["aandelen"] if (a.get("ticker") or a.get("naam"))
         ]

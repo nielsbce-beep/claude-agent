@@ -10,6 +10,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent / ".env", override=True)
 
+sys.path.insert(0, str(Path(__file__).parent))
+from tools.stock_prices import ververs_posities, ververs_positie
+
 sys.stdout.reconfigure(encoding="utf-8")
 
 client   = anthropic.Anthropic()
@@ -37,12 +40,14 @@ def _save(data: dict):
 def _totaal(data: dict) -> float:
     h = data["holdings"]
     aandelen_waarde = sum(p["waarde"] for p in h["aandelen"]["posities"])
-    return h["bnd"]["waarde"] + h["goud"]["waarde"] + aandelen_waarde + h["bitcoin"]["waarde"]
+    vanguard_waarde = h.get("vanguard", {}).get("waarde", 0)
+    return h["bnd"]["waarde"] + h["goud"]["waarde"] + aandelen_waarde + vanguard_waarde + h["bitcoin"]["waarde"]
 
 
 def _maandelijkse_inleg(data: dict) -> float:
     i = data["inleg"]
-    return i["bnd_maand"] + i["goud_maand"] + (i["aandelen_week"] * 52 / 12) + (i["bitcoin_week"] * 52 / 12)
+    wekelijks = i.get("aandelen_week", 0) + i.get("vanguard_week", 0) + i.get("bitcoin_week", 0)
+    return i["bnd_maand"] + i["goud_maand"] + (wekelijks * 52 / 12)
 
 
 def _projectie(huidig: float, maand_inleg: float, rendement_pct: float, doel: float, deadline: str) -> list[dict]:
@@ -105,6 +110,7 @@ def portfolio_context() -> str:
 
     h = data["holdings"]
     aandelen_waarde = sum(p["waarde"] for p in h["aandelen"]["posities"])
+    vanguard = h.get("vanguard", {})
     winnaars = sorted(h["aandelen"]["posities"], key=lambda p: p["rendement_pct"], reverse=True)[:3]
     verliezers = sorted(h["aandelen"]["posities"], key=lambda p: p["rendement_pct"])[:2]
 
@@ -116,6 +122,7 @@ def portfolio_context() -> str:
         f"  BND:      €{h['bnd']['waarde']:,.2f}",
         f"  Goud:     €{h['goud']['waarde']:,.2f}  ({h['goud']['rendement_pct']}%)",
         f"  Aandelen: €{aandelen_waarde:,.2f}",
+        f"  Vanguard: €{vanguard.get('waarde', 0):,.2f}  ({vanguard.get('rendement_pct', 0)}%)",
         f"  Bitcoin:  €{h['bitcoin']['waarde']:,.2f}",
         f"  Inleg:    €{maand:.0f}/maand",
         f"  Winnaars: {winnaars_str}",
@@ -144,7 +151,8 @@ def overzicht():
     print(f"          {_bar(totaal, doel)}  {pct:.1f}%")
     print(f"INLEG     €{maand:.0f}/maand  (BND €{data['inleg']['bnd_maand']} + "
           f"Goud €{data['inleg']['goud_maand']} + "
-          f"Aandelen €{data['inleg']['aandelen_week']}/wk + "
+          f"Aandelen €{data['inleg'].get('aandelen_week', 0)}/wk + "
+          f"Vanguard €{data['inleg'].get('vanguard_week', 0)}/wk + "
           f"BTC €{data['inleg']['bitcoin_week']}/wk)")
 
     # BND
@@ -166,7 +174,14 @@ def overzicht():
         bar_w = 8
         bar_filled = min(int(abs(rend) / 30 * bar_w), bar_w)
         bar = ("█" if rend >= 0 else "░") * bar_filled + "░" * (bar_w - bar_filled)
-        print(f"  {p['ticker']:<6}  {p['naam']:<22}  €{p['waarde']:>6,.2f}  {icon}{rend:>6.2f}%  {bar}")
+        print(f"  {p['ticker']:<9}  {p['naam']:<22}  €{p['waarde']:>6,.2f}  {icon}{rend:>6.2f}%  {bar}")
+
+    # Vanguard ETF
+    vg = h.get("vanguard")
+    if vg and vg.get("aantal"):
+        rend_vg = vg.get("rendement_pct", 0)
+        print(f"\nVANGUARD ETF      €{vg.get('waarde', 0):,.2f}  "
+              f"({rend_vg:+.2f}%  {vg.get('aantal')} x {vg.get('ticker')} @ €{vg.get('koers', 0):,.2f})")
 
     # Bitcoin
     if h["bitcoin"]["waarde"] > 0:
@@ -250,6 +265,33 @@ def update(component: str, waarde: float, extra: dict = None):
     print(f"✓ {component} bijgewerkt naar €{waarde:,.2f}")
 
 
+def ververs_koersen():
+    """Haal live koersen op voor losse aandelen + Vanguard ETF (zoals Trading 212) en werk waarde/rendement bij."""
+    data = _load()
+    today = date.today().isoformat()
+    h = data["holdings"]
+
+    oud_aandelen = sum(p.get("waarde", 0) for p in h["aandelen"]["posities"])
+    ververs_posities(h["aandelen"]["posities"])
+    nieuw_aandelen = sum(p.get("waarde", 0) for p in h["aandelen"]["posities"])
+
+    if h.get("vanguard", {}).get("aantal"):
+        oud_vg = h["vanguard"].get("waarde", 0)
+        ververs_positie(h["vanguard"])
+        nieuw_vg = h["vanguard"].get("waarde", 0)
+    else:
+        oud_vg = nieuw_vg = 0
+
+    data["updates"].append({"datum": today, "component": "aandelen", "oud": round(oud_aandelen, 2), "nieuw": round(nieuw_aandelen, 2)})
+    if h.get("vanguard", {}).get("aantal"):
+        data["updates"].append({"datum": today, "component": "vanguard", "oud": round(oud_vg, 2), "nieuw": round(nieuw_vg, 2)})
+    data["last_updated"] = today
+    _save(data)
+
+    print(f"✓ Koersen ververst — aandelen €{oud_aandelen:,.2f} → €{nieuw_aandelen:,.2f}, "
+          f"vanguard €{oud_vg:,.2f} → €{nieuw_vg:,.2f}")
+
+
 def analyse():
     """Claude geeft een directe analyse van het portfolio."""
     data = _load()
@@ -292,6 +334,8 @@ if __name__ == "__main__":
             print("Gebruik: python financieel_agent.py update [bnd|goud|bitcoin] [waarde]")
         else:
             update(args[1], float(args[2]))
+    elif args[0] == "ververs-koersen":
+        ververs_koersen()
     else:
         print("Gebruik:")
         print("  python financieel_agent.py              → portfolio overzicht")
@@ -299,3 +343,4 @@ if __name__ == "__main__":
         print("  python financieel_agent.py projectie 8  → projectie met 8% rendement")
         print("  python financieel_agent.py analyse      → AI analyse van je portfolio")
         print("  python financieel_agent.py update bnd 2950  → update BND waarde na screenshot")
+        print("  python financieel_agent.py ververs-koersen  → haal live koersen op voor aandelen + Vanguard")

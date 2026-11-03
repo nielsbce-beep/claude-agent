@@ -1,14 +1,15 @@
 {
   "last_updated": "2026-11-03",
   "doel": {
-    "bedrag": 25000,
+    "bedrag": 25000.0,
     "deadline": "2029-12-31"
   },
   "inleg": {
-    "bnd_maand": 125,
-    "goud_maand": 75,
-    "aandelen_week": 15,
-    "bitcoin_week": 10
+    "bnd_maand": 150.0,
+    "goud_maand": 150.0,
+    "aandelen_week": 30.0,
+    "bitcoin_week": 0.0,
+    "vanguard_week": 20.0
   },
   "holdings": {
     "bnd": {
@@ -17,31 +18,31 @@
       "posities": [
         {
           "naam": "BND Wereld Indexfonds Hedged",
-          "aantal": 31.6,
-          "koers": 40.46,
-          "waarde": 1278.42,
-          "weging": 45.41
+          "aantal": 42.53,
+          "koers": 40.35,
+          "waarde": 1716.15,
+          "weging": 45.45
         },
         {
           "naam": "BND Wereld Indexfonds Unhedged",
-          "aantal": 36.31,
-          "koers": 23.96,
-          "waarde": 870.19,
-          "weging": 30.91
+          "aantal": 49.23,
+          "koers": 24.88,
+          "waarde": 1224.94,
+          "weging": 32.44
         },
         {
           "naam": "BND Small Cap Wereld Carbon Screened",
-          "aantal": 15.22,
-          "koers": 19.17,
-          "waarde": 291.75,
-          "weging": 10.36
+          "aantal": 19.96,
+          "koers": 20.15,
+          "waarde": 402.1,
+          "weging": 10.65
         },
         {
           "naam": "BND Emerging Markets Indexfonds",
-          "aantal": 22.79,
-          "koers": 16.46,
-          "waarde": 375.1,
-          "weging": 13.32
+          "aantal": 26.81,
+          "koers": 16.14,
+          "waarde": 432.79,
+          "weging": 11.46
         }
       ]
     },
@@ -55,19 +56,111 @@
       "naam": "Stocks Niels",
       "posities": [
         {
-          "ticker": "STOCKS",
-          "naam": "Stocks Niels (account)",
-          "waarde": 612.17,
-          "rendement_pct": -11.6,
-          "weging": 100.0
+          "ticker": "META",
+          "naam": "Meta Platforms",
+          "aantal": 0.13844903,
+          "aankoopwaarde": 79.7,
+          "koers": 554.6517,
+          "waarde": 76.79,
+          "rendement_pct": -3.65,
+          "weging": 12.54
+        },
+        {
+          "ticker": "NVDA",
+          "naam": "Nvidia",
+          "aantal": 0.53380869,
+          "aankoopwaarde": 102.6,
+          "koers": 185.205,
+          "waarde": 98.86,
+          "rendement_pct": -3.65,
+          "weging": 16.15
+        },
+        {
+          "ticker": "BLK",
+          "naam": "BlackRock",
+          "aantal": 0.05598948,
+          "aankoopwaarde": 57.24,
+          "koers": 1036.7194,
+          "waarde": 58.05,
+          "rendement_pct": 1.42,
+          "weging": 9.48
+        },
+        {
+          "ticker": "GOOGL",
+          "naam": "Alphabet",
+          "aantal": 0.20293847,
+          "aankoopwaarde": 62.29,
+          "koers": 250.1138,
+          "waarde": 50.76,
+          "rendement_pct": -18.51,
+          "weging": 8.29
+        },
+        {
+          "ticker": "AMZN",
+          "naam": "Amazon",
+          "aantal": 0.35440825,
+          "aankoopwaarde": 80.23,
+          "koers": 225.2338,
+          "waarde": 79.82,
+          "rendement_pct": -0.51,
+          "weging": 13.04
+        },
+        {
+          "ticker": "ASML.AS",
+          "naam": "ASML",
+          "aantal": 0.04203987,
+          "aankoopwaarde": 62.28,
+          "koers": 1385.0,
+          "waarde": 58.23,
+          "rendement_pct": -6.5,
+          "weging": 9.51
+        },
+        {
+          "ticker": "CEG",
+          "naam": "Constellation Energy",
+          "aantal": 0.28080354,
+          "aankoopwaarde": 65.79,
+          "koers": 235.3087,
+          "waarde": 66.08,
+          "rendement_pct": 0.44,
+          "weging": 10.79
+        },
+        {
+          "ticker": "AVGO",
+          "naam": "Broadcom",
+          "aantal": 0.2148234,
+          "aankoopwaarde": 68.46,
+          "koers": 297.3463,
+          "waarde": 63.88,
+          "rendement_pct": -6.69,
+          "weging": 10.43
+        },
+        {
+          "ticker": "MELI",
+          "naam": "MercadoLibre",
+          "aantal": 0.04004019,
+          "aankoopwaarde": 65.52,
+          "koers": 1492.7426,
+          "waarde": 59.77,
+          "rendement_pct": -8.78,
+          "weging": 9.76
         }
       ]
     },
     "bitcoin": {
       "naam": "Bitcoin",
-      "waarde": 0,
-      "aankoopwaarde": 223,
+      "waarde": 0.0,
+      "aankoopwaarde": 223.0,
       "rendement_pct": -100.0
+    },
+    "vanguard": {
+      "naam": "Vanguard FTSE All-World (Acc)",
+      "ticker": "VWCE.DE",
+      "aantal": 3.08781951,
+      "aankoopwaarde": 515.0,
+      "koers": 168.06,
+      "waarde": 518.94,
+      "rendement_pct": 0.77
     }
   },
   "updates": [
@@ -88,6 +181,30 @@
       "component": "bitcoin",
       "oud": 223,
       "nieuw": 0
+    },
+    {
+      "datum": "2026-11-03",
+      "component": "aandelen",
+      "oud": 611.96,
+      "nieuw": 611.74
+    },
+    {
+      "datum": "2026-11-03",
+      "component": "vanguard",
+      "oud": 518.94,
+      "nieuw": 518.94
+    },
+    {
+      "datum": "2026-11-03",
+      "component": "aandelen",
+      "oud": 611.74,
+      "nieuw": 612.24
+    }
+  ],
+  "historie": [
+    {
+      "datum": "2026-11-03",
+      "totaal": 5818.28
     }
   ]
 }

@@ -47,6 +47,15 @@ WEB = BASE / "web"
 app = FastAPI(title="Life OS", docs_url=None, redoc_url=None, openapi_url=None)
 app.mount("/static", StaticFiles(directory=WEB), name="static")
 
+
+@app.middleware("http")
+async def geen_browser_cache_static(request: Request, call_next):
+    """Dwing revalidatie af voor /static zodat een nieuwe app.js/app.css altijd meteen geladen wordt."""
+    response = await call_next(request)
+    if request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return response
+
 ai = anthropic.Anthropic()
 
 
@@ -430,9 +439,18 @@ def api_portfolio_raw():
     return ld.portfolio_ruw()
 
 
+@app.post("/api/portfolio/ververs-koersen")
+def api_portfolio_ververs_koersen():
+    try:
+        return ld.portfolio_ververs_koersen()
+    except Exception as e:
+        raise HTTPException(502, f"Koersen ophalen mislukt: {e}")
+
+
 class Aandeel(BaseModel):
     ticker: str = Field(default="", max_length=12)
     naam: str = Field(default="", max_length=80)
+    aantal: float = Field(default=0, ge=0, le=1_000_000)
     waarde: float = Field(ge=0, le=10_000_000)
     rendement_pct: float = Field(default=0, ge=-100, le=10_000)
 
@@ -443,6 +461,10 @@ class PortfolioIn(BaseModel):
     goud_aankoop: float = Field(ge=0, le=10_000_000)
     bitcoin: float = Field(ge=0, le=10_000_000)
     bitcoin_aankoop: float = Field(ge=0, le=10_000_000)
+    vanguard: float = Field(ge=0, le=10_000_000)
+    vanguard_aankoop: float = Field(ge=0, le=10_000_000)
+    vanguard_ticker: str = Field(default="", max_length=20)
+    vanguard_aantal: float = Field(default=0, ge=0, le=1_000_000)
     aandelen: list[Aandeel]
     inleg: dict[str, float]
     doel: dict

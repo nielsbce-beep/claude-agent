@@ -563,7 +563,7 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
 .ci time { display: block; font: 500 11.5px var(--mono); color: var(--faint); margin-bottom: 2px; }
 .ci time b { color: var(--accent); font-weight: 600; }
 
-.stock-head, .stock { display: grid; grid-template-columns: 82px 1fr 110px 92px 26px; gap: 6px; align-items: center; }
+.stock-head, .stock { display: grid; grid-template-columns: 70px 1fr 64px 100px 85px 26px; gap: 6px; align-items: center; }
 .stock-head { font: 600 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; padding: 0 2px; }
 .stock { margin-bottom: 6px; }
 .stock input { height: 34px; font-size: 13px; padding: 6px 9px; }
@@ -586,9 +586,9 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
   .modal { width: 100%; max-height: 92vh; border-radius: 24px 24px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); animation: sheet .4s var(--ease); }
   .f2, .f3 { grid-template-columns: 1fr; }
   .stock-head { display: none; }
-  .stock { grid-template-columns: 1fr 1.6fr 26px; grid-template-areas: "t n x" "w r ."; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
-  .stock > :nth-child(1) { grid-area: t; } .stock > :nth-child(2) { grid-area: n; } .stock > :nth-child(3) { grid-area: w; }
-  .stock > :nth-child(4) { grid-area: r; } .stock > :nth-child(5) { grid-area: x; }
+  .stock { grid-template-columns: 1fr 1.6fr 26px; grid-template-areas: "t n x" "a w r"; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .stock > :nth-child(1) { grid-area: t; } .stock > :nth-child(2) { grid-area: n; } .stock > :nth-child(3) { grid-area: a; }
+  .stock > :nth-child(4) { grid-area: w; } .stock > :nth-child(5) { grid-area: r; } .stock > :nth-child(6) { grid-area: x; }
 }
 @keyframes sheet { from { transform: translateY(100%); } }
 

@@ -5,3 +5,4 @@ edge-tts>=6.1.9
 moviepy>=2.0.0
 numpy>=1.24.0
 Pillow>=10.0.0
+yfinance>=0.2.40

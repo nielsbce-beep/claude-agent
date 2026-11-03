@@ -308,7 +308,7 @@ function renderPortfolio() {
   const p = state.portfolio, el = $("#portfolio");
   $("#pf-updated").textContent = p.updated;
   const pct = Math.min(100, (p.total / p.goal) * 100);
-  const kleuren = { BND: "#a78bfa", Aandelen: "#22d3ee", Goud: "#fbbf24", Bitcoin: "#fb923c" };
+  const kleuren = { BND: "#a78bfa", Aandelen: "#22d3ee", Vanguard: "#34d399", Goud: "#fbbf24", Bitcoin: "#fb923c" };
   const parts = Object.entries(p.parts).filter(([, v]) => v > 0);
   const tot = parts.reduce((a, [, v]) => a + v, 0) || 1;
   const onSchema = p.projection >= p.goal;
@@ -447,6 +447,7 @@ const num = (v) => {
   return isFinite(n) ? n : 0;
 };
 const fmtNum = (n) => (n == null ? "" : String(Math.round(n * 100) / 100).replace(".", ","));
+const fmtAantal = (n) => (n == null ? "" : String(Math.round(n * 1e6) / 1e6).replace(".", ","));
 const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
 /* ── Doelen ─────────────────────────────────────────────────────────── */
@@ -601,21 +602,23 @@ async function openCompletedGoals() {
 }
 
 /* ── Portfolio ──────────────────────────────────────────────────────── */
-const INLEG_LABEL = { bnd_maand: "BND per maand", goud_maand: "Goud per maand", aandelen_week: "Aandelen per week", bitcoin_week: "Bitcoin per week" };
+const INLEG_LABEL = { bnd_maand: "BND per maand", goud_maand: "Goud per maand", aandelen_week: "Aandelen per week", vanguard_week: "Vanguard ETF per week", bitcoin_week: "Bitcoin per week" };
 
 async function openPortfolio() {
   let p;
   try { p = await api("/api/portfolio/raw"); } catch { return toast("Portfolio laden mislukt", true); }
   const h = p.holdings || {};
+  const vg = h.vanguard || {};
   const money = (id, v, label) => `<label class="f"><span>${label}</span><div class="euro">
       <input id="${id}" inputmode="decimal" value="${fmtNum(v)}" autocomplete="off"></div></label>`;
   const stockRow = (s = {}) => `<div class="stock">
       <input data-k="ticker" value="${esc(s.ticker || "")}" placeholder="TICK" maxlength="12">
       <input data-k="naam" value="${esc(s.naam || "")}" placeholder="Naam" maxlength="80">
+      <input data-k="aantal" inputmode="decimal" value="${fmtAantal(s.aantal)}" placeholder="aantal">
       <div class="euro"><input data-k="waarde" inputmode="decimal" value="${fmtNum(s.waarde)}" placeholder="0"></div>
       <input data-k="rendement_pct" inputmode="decimal" value="${fmtNum(s.rendement_pct)}" placeholder="% rend.">
       <button class="x" type="button" aria-label="Verwijderen">${ICON.x}</button></div>`;
-  const inleg = { bnd_maand: 0, goud_maand: 0, aandelen_week: 0, bitcoin_week: 0, ...(p.inleg || {}) };
+  const inleg = { bnd_maand: 0, goud_maand: 0, aandelen_week: 0, vanguard_week: 0, bitcoin_week: 0, ...(p.inleg || {}) };
 
   const m = modal({
     title: "Portfolio bijwerken", width: 720, onClose: () => reload(),
@@ -626,9 +629,14 @@ async function openPortfolio() {
         <div class="f2">${money("p-btc", h.bitcoin?.waarde, "Bitcoin — huidige waarde")}${money("p-btc-a", h.bitcoin?.aankoopwaarde, "Bitcoin — aankoopwaarde")}</div>
       </div>
       <div class="sec"><div class="sec-h"><h4>Losse aandelen</h4><span id="p-st-tot"></span></div>
-        <div class="stock-head"><span>Ticker</span><span>Naam</span><span>Waarde</span><span>Rendement</span><span></span></div>
+        <div class="stock-head"><span>Ticker</span><span>Naam</span><span>Aantal</span><span>Waarde</span><span>Rendement</span><span></span></div>
         <div id="p-stocks">${(h.aandelen?.posities || []).map(stockRow).join("")}</div>
         <button class="btn sm" type="button" id="p-add-stock" style="margin-top:6px">${ICON.plus} Aandeel toevoegen</button>
+      </div>
+      <div class="sec"><div class="sec-h"><h4>Vanguard ETF</h4><span>${esc(vg.ticker || "")}</span></div>
+        <div class="f2"><label class="f"><span>Ticker (Yahoo Finance)</span><input id="p-vg-ticker" value="${esc(vg.ticker || "")}" placeholder="VWCE.DE"></label>
+          <label class="f"><span>Aantal</span><input id="p-vg-aantal" inputmode="decimal" value="${fmtAantal(vg.aantal)}"></label></div>
+        <div class="f2">${money("p-vg", vg.waarde, "Huidige waarde")}${money("p-vg-a", vg.aankoopwaarde, "Aankoopwaarde")}</div>
       </div>
       <div class="sec"><div class="sec-h"><h4>Inleg</h4><span id="p-maand"></span></div>
         <div class="f2">${Object.keys(inleg).map((k) => money("p-in-" + k, inleg[k], INLEG_LABEL[k] || k)).join("")}</div>
@@ -637,7 +645,8 @@ async function openPortfolio() {
         <div class="f2">${money("p-doel", p.doel?.bedrag ?? 25000, "Doelbedrag")}
           <label class="f"><span>Deadline</span><input type="date" id="p-deadline" value="${esc(p.doel?.deadline || "2029-12-31")}"></label></div>
       </div>`,
-    foot: `<span class="total-preview">Nieuw totaal<b id="p-total"></b></span><span class="spacer"></span>
+    foot: `<button class="btn sm" type="button" id="p-ververs">Koersen verversen</button>
+      <span class="total-preview">Nieuw totaal<b id="p-total"></b></span><span class="spacer"></span>
       <button class="btn primary" id="p-save" type="button">Opslaan</button>`,
   });
 
@@ -646,7 +655,7 @@ async function openPortfolio() {
   }).filter((s) => s.ticker.trim() || s.naam.trim());
   const update = () => {
     const st = stocks().reduce((a, s) => a + num(s.waarde), 0);
-    const tot = num(m.$("#p-bnd").value) + num(m.$("#p-goud").value) + num(m.$("#p-btc").value) + st;
+    const tot = num(m.$("#p-bnd").value) + num(m.$("#p-goud").value) + num(m.$("#p-btc").value) + num(m.$("#p-vg").value) + st;
     m.$("#p-total").textContent = eur(tot);
     m.$("#p-st-tot").textContent = eur(st);
     const maand = Object.keys(inleg).reduce((a, k) => a + num(m.$("#p-in-" + k).value) * (k.endsWith("_week") ? 52 / 12 : 1), 0);
@@ -661,6 +670,14 @@ async function openPortfolio() {
   m.el.addEventListener("input", update);
   update();
 
+  m.$("#p-ververs").addEventListener("click", async () => {
+    const b = m.$("#p-ververs"); b.disabled = true; b.textContent = "Koersen ophalen…";
+    try {
+      await api("/api/portfolio/ververs-koersen", { method: "POST" });
+      toast("Koersen ververst 📈"); m.close(); openPortfolio();
+    } catch (e) { toast("Verversen mislukt: " + e.message, true); b.disabled = false; b.textContent = "Koersen verversen"; }
+  });
+
   m.$("#p-save").addEventListener("click", async () => {
     const b = m.$("#p-save"); b.disabled = true;
     try {
@@ -668,7 +685,9 @@ async function openPortfolio() {
         bnd: num(m.$("#p-bnd").value),
         goud: num(m.$("#p-goud").value), goud_aankoop: num(m.$("#p-goud-a").value),
         bitcoin: num(m.$("#p-btc").value), bitcoin_aankoop: num(m.$("#p-btc-a").value),
-        aandelen: stocks().map((s) => ({ ticker: s.ticker, naam: s.naam, waarde: num(s.waarde), rendement_pct: num(s.rendement_pct) })),
+        vanguard: num(m.$("#p-vg").value), vanguard_aankoop: num(m.$("#p-vg-a").value),
+        vanguard_ticker: m.$("#p-vg-ticker").value, vanguard_aantal: num(m.$("#p-vg-aantal").value),
+        aandelen: stocks().map((s) => ({ ticker: s.ticker, naam: s.naam, aantal: num(s.aantal), waarde: num(s.waarde), rendement_pct: num(s.rendement_pct) })),
         inleg: Object.fromEntries(Object.keys(inleg).map((k) => [k, num(m.$("#p-in-" + k).value)])),
         doel: { bedrag: num(m.$("#p-doel").value), deadline: m.$("#p-deadline").value },
       } });
